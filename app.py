@@ -145,17 +145,15 @@ def ai_doctor():
 @app.route('/analyze_audio', methods=['POST'])
 def analyze_audio():
     if 'audio' not in request.files:
-        return jsonify({"error": "Không tìm thấy tệp âm thanh."}), 400
-    
+        return jsonify({"result": "Lỗi: Không tìm thấy tệp âm thanh."}), 400
+
     audio_file = request.files['audio']
-    # Giả sử bạn muốn lưu file tạm thời để phân tích
     audio_file_path = f"/tmp/{audio_file.filename}"
     audio_file.save(audio_file_path)
 
-    # Gọi hàm phân tích âm thanh
     analysis_result = analyze_audio_with_gemini(audio_file_path)
 
-    # Trả về kết quả phân tích
+    # Trả về kết quả phân tích hoặc thông báo lỗi
     return jsonify({"result": analysis_result})
 
 if __name__ == '__main__':

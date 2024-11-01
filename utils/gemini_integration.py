@@ -209,20 +209,15 @@ def analyze_audio_with_gemini(audio_path, api_key):
     try:
         # Gửi yêu cầu phân tích
         response = requests.post(analysis_url, headers=headers, data=json.dumps(data))
-
+        
         if response.status_code == 200:
             response_data = response.json()
-            
             if "candidates" in response_data and response_data["candidates"]:
-                generated_text = response_data["candidates"][0]["content"]["parts"][0]["text"]
-                return generated_text.strip()
+                return response_data["candidates"][0]["content"]["parts"][0]["text"].strip()
             else:
-                return "Không tìm thấy nội dung nào được tạo ra."
+                return "Lỗi: Không có nội dung nào được Gemini tạo ra."
         else:
-            print(f"Lỗi: Nhận mã trạng thái {response.status_code}")
-            return f"Lỗi: Không thể xử lý âm thanh. Mã trạng thái: {response.status_code}"
+            return f"Lỗi: Nhận mã trạng thái {response.status_code} với thông báo {response.text}"
 
     except Exception as e:
-        print(f"Đã xảy ra lỗi: {e}")
-        return "Lỗi: Không thể xử lý âm thanh với Gemini AI."
-
+        return f"Xảy ra ngoại lệ: {e}"
