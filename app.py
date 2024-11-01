@@ -70,14 +70,10 @@ def signup():
 @app.route('/upload', methods=['POST'])
 def upload_file():
     if 'file' not in request.files:
-        flash("No file part in the request", "warning")
         return redirect(request.url)
-    
     file = request.files['file']
     if file.filename == '':
-        flash("No selected file", "warning")
         return redirect(request.url)
-
     if file:
         # Ensure the 'uploads' folder exists
         if not os.path.exists(app.config['UPLOAD_FOLDER']):
@@ -86,18 +82,17 @@ def upload_file():
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
         file.save(filepath)
         
-        # Process OCR
+        # Xử lý OCR
         raw_text = extract_text_from_image(filepath)
         
-        # Analyze with Gemini AI
-        extracted_entities = analyze_text_with_gemini(raw_text).replace('\n', ' ')  # Ensure display on one line
+        # Phân tích với Gemini AI
+        extracted_entities = analyze_text_with_gemini(raw_text).replace('\n', ' ')  # Đảm bảo hiển thị trên một dòng
         
-        # Delete file after processing
+        # Xóa tập tin sau khi xử lý
         os.remove(filepath)
         
-        # Display results
+        # Hiển thị kết quả
         return render_template('index.html', extracted_text=raw_text, extracted_entities=extracted_entities)
-    
     return redirect(request.url)
 
 if __name__ == '__main__':
