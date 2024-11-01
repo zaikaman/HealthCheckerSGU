@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from flask_sqlalchemy import SQLAlchemy
 import os
 from utils.ocr_processing import extract_text_from_image
-from utils.gemini_integration import analyze_text_with_gemini
+from utils.gemini_integration import analyze_text_with_gemini, analyze_text_with_image
 
 app = Flask(__name__)
 
@@ -12,7 +12,12 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'your_secret_key'  # Needed if you plan to use flash messages
 
 # Cấu hình thư mục tải lên
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 app.config['UPLOAD_FOLDER'] = 'uploads'  # Đặt tên cho thư mục tải lên
+
+# Kiểm tra đuôi file
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 db = SQLAlchemy(app)
 
@@ -104,6 +109,32 @@ def upload_file():
 
 @app.route('/health_analysis', methods=['GET', 'POST'])
 def health_analysis():
+    if request.method == 'POST':
+        # Kiểm tra xem file đã được tải lên chưa
+        if 'file' not in request.files:
+            flash('No file part')
+            return redirect(request.url)
+
+        file = request.files['file']
+        
+        # Nếu không có file được chọn, báo cho người dùng
+        if file.filename == '':
+            flash('No selected file')
+            return redirect(request.url)
+
+        # Lưu file
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(file_path)
+
+            # Phân tích tin nhắn và ảnh
+            text_prompt = "Vui lòng phân tích thật kỹ"
+            result = analyze_text_with_image(text_prompt, file_path)
+
+            # Hiện kết quae
+            return render_template('health_analysis.html', health_analysis_result=result)
+
     return render_template('health_analysis.html')
 
 if __name__ == '__main__':
