@@ -130,7 +130,7 @@ def health_analysis():
             file.save(file_path)
 
             # Phân tích tin nhắn và ảnh
-            text_prompt = "Vui lòng phân tích thật kỹ"
+            text_prompt = "chỉ cần phân tích xem người này trông như thế nào và có thể hoạt động thể dục thể thao nhiều hay ít,... nói gì đó thật ý nghĩa là được:"
             result = analyze_text_with_image(text_prompt, file_path)
 
             # Hiện kết quae

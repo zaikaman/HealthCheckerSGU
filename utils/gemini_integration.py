@@ -95,7 +95,7 @@ def analyze_text_with_image(text, image_path):
     }
     
     # Prepare the prompt
-    prompt_text = "Hãy phân tích tình trạng bệnh của bệnh nhân này dựa trên hình ảnh thể trạng của người này: " + text
+    prompt_text = "Hãy phân tích tình thể trạng người này" + text
     
     # Upload the image and retrieve the URI
     file_uri = upload_image_to_gemini(image_path, api_key)
