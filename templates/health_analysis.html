@@ -50,6 +50,18 @@
     </style>
 </head>
 <body>
+    <!-- Navbar containing the login/logout button -->
+<nav class="navbar navbar-light bg-light">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">Phân Tích Sức Khỏe Dựa Trên Thể Trạng</a>
+        <a href="{{ url_for('upload_file') }}" class="btn btn-outline-secondary">Phân Tích Hồ Sơ Y Tế Hoặc Đơn Thuốc</a>
+        {% if session.username %}
+            <a href="{{ url_for('logout') }}" class="btn btn-outline-danger">Đăng Xuất</a>
+        {% else %}
+            <a href="{{ url_for('login') }}" class="btn btn-outline-primary">Đăng Nhập</a>
+        {% endif %}
+    </div>
+</nav>
     <div class="container">
         <h1>Phân Tích Sức Khỏe Dựa Trên Thể Trạng</h1>
         <form action="{{ url_for('health_analysis') }}" method="post" enctype="multipart/form-data" class="text-center">
