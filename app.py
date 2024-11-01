@@ -1,12 +1,26 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
+from flask_sqlalchemy import SQLAlchemy
 import os
-from utils.ocr_processing import extract_text_from_image
-from utils.gemini_integration import analyze_text_with_gemini
 
 app = Flask(__name__)
+
+# Cấu hình cơ sở dữ liệu
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://fmu76a694pv7tx5b:igvaouje2t8tcxgd@yhrz9vns005e0734.cbetxkdyhwsb.us-east-1.rds.amazonaws.com:3306/q8b1v3rybj8kvaiu'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'your_secret_key'  # Needed if you plan to use flash messages
-app.config['UPLOAD_FOLDER'] = 'uploads'
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Limit upload size to 16 MB
+
+db = SQLAlchemy(app)
+
+# Định nghĩa mô hình User
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(200), nullable=False)
+
+# Tạo cơ sở dữ liệu nếu chưa tồn tại
+with app.app_context():
+    db.create_all()
 
 @app.route('/')
 def index():
@@ -15,12 +29,11 @@ def index():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        # Retrieve form data
         username = request.form.get('username')
         password = request.form.get('password')
-        print(f"Login attempt with Username: {username}, Password: {password}")  # For testing
-        # Placeholder authentication logic (replace with actual logic if needed)
-        if username == "admin" and password == "password":  # Dummy check
+        user = User.query.filter_by(username=username, password=password).first()  # Kiểm tra thông tin đăng nhập
+        
+        if user:
             flash("Logged in successfully!", "success")
             return redirect(url_for('index'))
         else:
@@ -30,14 +43,21 @@ def login():
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
-        # Retrieve form data
         username = request.form.get('username')
         email = request.form.get('email')
         password = request.form.get('password')
-        print(f"Signup attempt with Username: {username}, Email: {email}, Password: {password}")  # For testing
-        # Placeholder registration logic (replace with actual logic if needed)
-        flash("Account created successfully!", "success")
-        return redirect(url_for('login'))
+        
+        # Kiểm tra xem người dùng đã tồn tại chưa
+        existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
+        if existing_user:
+            flash("Username or Email already exists", "danger")
+        else:
+            new_user = User(username=username, email=email, password=password)
+            db.session.add(new_user)
+            db.session.commit()
+            flash("Account created successfully!", "success")
+            return redirect(url_for('login'))
+    
     return render_template('signup.html')
 
 @app.route('/upload', methods=['POST'])
