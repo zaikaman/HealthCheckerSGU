@@ -102,6 +102,10 @@ def upload_file():
     
     return redirect(request.url)
 
+@app.route('/health_analysis', methods=['GET', 'POST'])
+def health_analysis():
+    return render_template('health_analysis.html')
+
 if __name__ == '__main__':
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
         os.makedirs(app.config['UPLOAD_FOLDER'])
