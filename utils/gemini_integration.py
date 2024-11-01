@@ -4,6 +4,7 @@ import re
 import os
 
 def upload_image_to_gemini(image_path, api_key):
+    api_key = "AIzaSyBCCCvVlI3FyQKLYmI2SdASxPiZvh8VvHY"
     url = f"https://generativelanguage.googleapis.com/upload/v1beta/files?key={api_key}"
     
     mime_type = "image/jpeg" if image_path.lower().endswith(".jpg") or image_path.lower().endswith(".jpeg") else "image/png"
@@ -145,6 +146,7 @@ def analyze_text_with_image(text, image_path):
         return "Error: Unable to process text with Gemini AI."
     
 def analyze_audio_with_gemini(audio_path, api_key):
+    api_key = "AIzaSyBCCCvVlI3FyQKLYmI2SdASxPiZvh8VvHY"
     upload_url = f"https://generativelanguage.googleapis.com/upload/v1beta/files?key={api_key}"
 
     mime_type = "audio/mpeg" if audio_path.lower().endswith(".mp3") else "audio/wav"
