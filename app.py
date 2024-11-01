@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 import os
 from utils.ocr_processing import extract_text_from_image
 from utils.gemini_integration import analyze_text_with_gemini, analyze_text_with_image
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
