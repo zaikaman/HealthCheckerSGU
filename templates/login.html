@@ -1,16 +1,16 @@
 {% extends "base.html" %}
 {% from "_render_elements.html" import render_field %}
 {% block title %}
-Log In
+Đăng Nhập
 {% endblock %}
 {% block content %}
-<h1>Log In</h1>
+<h1>Đăng Nhập</h1>
 <form method="post" action="{{ url_for('login') }}">
     {{ form.csrf_token }}
-    {{ render_field(form.username) }}
-    {{ render_field(form.password) }}
+    {{ render_field(form.username, label="Tên đăng nhập") }}
+    {{ render_field(form.password, label="Mật khẩu") }}
     <p>{{ form.remember }} {{ form.remember.label }}</p>
     {{ form.submit }}
-    <a href="/signup">Haven't an account already? Sign Up for FREE!</a>
+    <a href="/signup">Chưa có tài khoản? Đăng Ký MIỄN PHÍ ngay!</a>
 </form>
 {% endblock %}
