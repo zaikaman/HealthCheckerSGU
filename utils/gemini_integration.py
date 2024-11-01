@@ -48,7 +48,7 @@ def analyze_text_with_gemini(text):
         'Content-Type': 'application/json'
     }
     
-    prompt_text = "Hãy phân tích tình trạng bệnh của bệnh nhân này dựa trên văn bản này, nếu là đơn thuốc thì hãy tự suy nghĩ bệnh nhân có thể bị bệnh gì dựa trên đơn thuốc và phân tích bệnh nhân nên làm gì và không nên làm gì để tình trạng bệnh tốt hơn: " + text
+    prompt_text = "Hãy phân tích tình trạng sức khỏe của bệnh nhân dựa trên văn bản này. Nếu đây là đơn thuốc, hãy suy luận về các khả năng bệnh lý dựa trên các loại thuốc được kê và giải thích lý do có thể cho việc sử dụng từng loại thuốc. Đưa ra nhận xét về tình trạng sức khỏe của bệnh nhân cũng như các hành vi và thói quen nên hoặc không nên thực hiện để cải thiện tình trạng bệnh. Hãy cung cấp lời khuyên cụ thể và hữu ích, tập trung vào chế độ ăn uống, hoạt động thể chất và các thói quen lành mạnh: " + text
     
     data = {
         "contents": [
