@@ -3,18 +3,33 @@
 Đăng Ký
 {% endblock %}
 {% block content %}
-<h1>Đăng Ký</h1>
-<form method="post" action="{{ url_for('signup') }}">
-    <label for="username">Tên đăng nhập:</label>
-    <input type="text" id="username" name="username" required>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h1 class="text-center mb-4">Đăng Ký</h1>
+            <form method="post" action="{{ url_for('signup') }}">
+                <div class="mb-3">
+                    <label for="username" class="form-label">Tên đăng nhập:</label>
+                    <input type="text" id="username" name="username" class="form-control" placeholder="Nhập tên đăng nhập" required>
+                </div>
 
-    <label for="email">Email:</label>
-    <input type="email" id="email" name="email" required>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email:</label>
+                    <input type="email" id="email" name="email" class="form-control" placeholder="Nhập email" required>
+                </div>
 
-    <label for="password">Mật khẩu:</label>
-    <input type="password" id="password" name="password" required>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Mật khẩu:</label>
+                    <input type="password" id="password" name="password" class="form-control" placeholder="Nhập mật khẩu" required>
+                </div>
 
-    <button type="submit">Đăng Ký</button>
-    <p><a href="{{ url_for('login') }}">Bạn đã có tài khoản? Đăng Nhập</a></p>
-</form>
+                <button type="submit" class="btn btn-primary w-100">Đăng Ký</button>
+
+                <p class="text-center mt-3">
+                    <a href="{{ url_for('login') }}">Bạn đã có tài khoản? Đăng Nhập</a>
+                </p>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}
