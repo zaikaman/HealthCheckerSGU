@@ -37,8 +37,8 @@
     <nav class="navbar navbar-light bg-light">
         <div class="container-fluid">
             <a class="navbar-brand" href="#">Bác Sĩ AI</a>
-            <a href="{{ url_for('health_analysis') }}" class="btn btn-outline-secondary me-auto">Phân Tích Sức Khỏe Dựa Trên Thể Trạng</a>
-            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary me-auto">Phân Tích Sức Khỏe Dựa Trên Hồ Sơ Y Tế</a>
+            <a href="{{ url_for('health_analysis') }}" class="btn btn-outline-secondary">Phân Tích Sức Khỏe Dựa Trên Thể Trạng</a>
+            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary ms-2">Phân Tích Sức Khỏe Dựa Trên Hồ Sơ Y Tế</a>
             {% if session.username %}
                 <a href="{{ url_for('logout') }}" class="btn btn-outline-danger">Đăng Xuất</a>
             {% else %}

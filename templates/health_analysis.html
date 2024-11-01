@@ -54,8 +54,8 @@
 <nav class="navbar navbar-light bg-light">
     <div class="container-fluid">
         <a class="navbar-brand" href="#">Phân Tích Sức Khỏe Dựa Trên Thể Trạng</a>
-        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary me-auto">Phân Tích Hồ Sơ Y Tế Hoặc Đơn Thuốc</a>
-        <a href="{{ url_for('ai_doctor') }}" class="btn btn-outline-secondary me-auto">Bác Sĩ AI</a>
+        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Phân Tích Hồ Sơ Y Tế Hoặc Đơn Thuốc</a>
+        <a href="{{ url_for('ai_doctor') }}" class="btn btn-outline-secondary ms-2">Bác Sĩ AI</a>
         {% if session.username %}
             <a href="{{ url_for('logout') }}" class="btn btn-outline-danger">Đăng Xuất</a>
         {% else %}
