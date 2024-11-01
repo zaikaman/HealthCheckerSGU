@@ -12,6 +12,10 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Giới hạn tải lên t
 def index():
     return render_template('index.html')
 
+@app.route('/login')
+def login():
+    return render_template('login.html')
+
 @app.route('/upload', methods=['POST'])
 def upload_file():
     if 'file' not in request.files:
