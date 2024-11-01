@@ -130,7 +130,7 @@ def health_analysis():
             file.save(file_path)
 
             # Phân tích tin nhắn và ảnh
-            text_prompt = "chỉ cần phân tích xem người này trông như thế nào và có thể hoạt động thể dục thể thao nhiều hay ít,... nói gì đó thật ý nghĩa là được:"
+            text_prompt = "Hãy phân tích tình trạng thể chất của người trong bức ảnh này. Xin hãy đánh giá các yếu tố như thể trạng tổng thể, chỉ số cơ thể có thể suy đoán (như vóc dáng, sức mạnh cơ bắp, mức độ linh hoạt), khả năng hoạt động thể chất, và tiềm năng thực hiện các loại hình thể dục khác nhau. Nếu có thể, hãy đưa ra những nhận xét tinh tế và động viên để giúp người này nhận thức rõ hơn về sức khỏe của mình, cùng một số lời khuyên hữu ích để phát triển lối sống lành mạnh."
             result = analyze_text_with_image(text_prompt, file_path)
 
             # Hiện kết quae
