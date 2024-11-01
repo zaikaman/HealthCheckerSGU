@@ -47,9 +47,20 @@
             font-size: 1rem;
             color: #333;
         }
+        .navbar {
+            padding-right: 15px;
+        }
     </style>
 </head>
 <body>
+    <!-- Navbar chứa nút đăng nhập -->
+    <nav class="navbar navbar-light bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Trang Chủ</a>
+            <a href="{{ url_for('login') }}" class="btn btn-outline-primary">Đăng Nhập</a>
+        </div>
+    </nav>
+
     <div class="container">
         <h1>Phân Tích Hồ Sơ Y Tế Hoặc Đơn Thuốc</h1>
         <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data" class="text-center">
@@ -62,7 +73,7 @@
         {% if extracted_entities %}
         <div class="result-container">
             <h2>Kết Quả Phân Tích:</h2>
-            <pre>{{ extracted_entities|safe }}</pre> <!-- Cho phép HTML trong kết quả -->
+            <pre>{{ extracted_entities|safe }}</pre>
         </div>
         {% endif %}
     </div>
