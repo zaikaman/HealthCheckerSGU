@@ -53,11 +53,15 @@
     </style>
 </head>
 <body>
-    <!-- Navbar chứa nút đăng nhập -->
+    <!-- Navbar chứa nút đăng nhập hoặc đăng xuất -->
     <nav class="navbar navbar-light bg-light">
         <div class="container-fluid">
             <a class="navbar-brand" href="#">Trang Chủ</a>
-            <a href="{{ url_for('login') }}" class="btn btn-outline-primary">Đăng Nhập</a>
+            {% if session.username %}
+                <a href="{{ url_for('logout') }}" class="btn btn-outline-danger">Đăng Xuất</a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="btn btn-outline-primary">Đăng Nhập</a>
+            {% endif %}
         </div>
     </nav>
 
