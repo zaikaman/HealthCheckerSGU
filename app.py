@@ -138,6 +138,10 @@ def health_analysis():
 
     return render_template('health_analysis.html')
 
+@app.route('/ai_doctor')
+def ai_doctor():
+    return render_template('ai_doctor.html')
+
 if __name__ == '__main__':
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
         os.makedirs(app.config['UPLOAD_FOLDER'])

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phân Tích Hồ Sơ Y Tế</title>
+    <title>Phân Tích Sức Khỏe</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
@@ -58,6 +58,7 @@
         <div class="container-fluid">
             <a class="navbar-brand" href="#">Phân Tích Hồ Sơ Y Tế Hoặc Đơn Thuốc</a>
             <a href="{{ url_for('health_analysis') }}" class="btn btn-outline-secondary me-auto">Phân Tích Sức Khỏe Dựa Trên Thể Trạng</a>
+            <a href="{{ url_for('ai_doctor') }}" class="btn btn-outline-secondary">Bác Sĩ AI</a>
             {% if session.username %}
                 <a href="{{ url_for('logout') }}" class="btn btn-outline-danger">Đăng Xuất</a>
             {% else %}
