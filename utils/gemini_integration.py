@@ -169,16 +169,13 @@ def analyze_audio_with_gemini(audio_path):
         init_data = {"file": {"display_name": "User Audio"}}
         response = requests.post(upload_init_url, headers=init_headers, json=init_data)
         
-        # Kiểm tra phản hồi của yêu cầu khởi tạo upload
         if response.status_code != 200:
             return f"Lỗi: Không thể khởi tạo upload. Mã trạng thái: {response.status_code}. Phản hồi: {response.text}"
         
-        # Lấy URL từ header của phản hồi để dùng cho bước upload dữ liệu
         upload_url = response.headers.get("X-Goog-Upload-URL")
         if not upload_url:
             return "Lỗi: Không nhận được URL upload từ API sau khi khởi tạo."
 
-        # Thiết lập header cho bước upload file
         upload_headers = {
             "Content-Length": str(num_bytes),
             "X-Goog-Upload-Offset": "0",
@@ -189,22 +186,26 @@ def analyze_audio_with_gemini(audio_path):
         with open(audio_path, "rb") as audio_file:
             response = requests.post(upload_url, headers=upload_headers, data=audio_file)
         
-        # Kiểm tra phản hồi của yêu cầu upload dữ liệu
         if response.status_code != 200:
             return f"Lỗi: Không thể upload dữ liệu âm thanh. Mã trạng thái: {response.status_code}. Phản hồi: {response.text}"
 
-        # Lấy URI của file đã upload từ phản hồi
         audio_uri = response.json().get("file", {}).get("uri")
         if not audio_uri:
             return "Lỗi: Không nhận được URI của file âm thanh từ API sau khi upload."
 
-        # Bước 3: Phân tích nội dung âm thanh
+        # Bước 3: Phân tích nội dung âm thanh với prompt
         analysis_headers = {"Content-Type": "application/json"}
         
-        # Dữ liệu yêu cầu cho phân tích
+        # Prompt cho quá trình phân tích
+        prompt_text = ("Bạn là một bác sĩ chuyên nghiệp với kiến thức sâu rộng trong nhiều lĩnh vực y khoa. "
+                       "Hãy lắng nghe đoạn âm thanh của bệnh nhân và trả lời các câu hỏi hoặc đưa ra phân tích chuyên sâu "
+                       "về tình trạng sức khỏe của họ. Vui lòng cung cấp các gợi ý chẩn đoán, giải thích chi tiết về triệu chứng, "
+                       "và nếu có thể, hướng dẫn ban đầu về cách xử lý hoặc chăm sóc cần thiết cho bệnh nhân.")
+
         data = {
             "contents": [
                 {
+                    "text": prompt_text,
                     "parts": [
                         {
                             "file_data": {
@@ -217,21 +218,17 @@ def analyze_audio_with_gemini(audio_path):
             ]
         }
 
-        # Gửi yêu cầu phân tích tới API
         response = requests.post(analysis_url, headers=analysis_headers, data=json.dumps(data))
         
-        # Kiểm tra phản hồi của yêu cầu phân tích
         if response.status_code == 200:
             response_data = response.json()
-            # Trả về nội dung phân tích nếu có
             if "candidates" in response_data and response_data["candidates"]:
                 return response_data["candidates"][0]["content"]["parts"][0]["text"].strip()
             else:
                 return "Lỗi: Không có nội dung nào được tạo ra từ quá trình phân tích."
         else:
-            # Trả về mã lỗi và nội dung chi tiết nếu yêu cầu phân tích thất bại
             return f"Lỗi khi phân tích âm thanh. Mã trạng thái: {response.status_code}. Phản hồi: {response.text}"
 
     except Exception as e:
-        # Bắt và ghi lại ngoại lệ trong trường hợp xảy ra lỗi không mong muốn
         return f"Xảy ra ngoại lệ: {e}"
+
