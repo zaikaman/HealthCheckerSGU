@@ -1,16 +1,20 @@
 {% extends "base.html" %}
-{% from "_render_elements.html" import render_field %}
 {% block title %}
 Đăng Ký
 {% endblock %}
 {% block content %}
 <h1>Đăng Ký</h1>
 <form method="post" action="{{ url_for('signup') }}">
-    {{ form.csrf_token }}
-    {{ render_field(form.username, label="Tên đăng nhập") }}
-    {{ render_field(form.email, label="Email") }}
-    {{ render_field(form.password, label="Mật khẩu") }}
-    {{ form.submit }}
-    <a href="/login">Bạn đã có tài khoản? Đăng Nhập</a>
+    <label for="username">Tên đăng nhập:</label>
+    <input type="text" id="username" name="username" required>
+
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" required>
+
+    <label for="password">Mật khẩu:</label>
+    <input type="password" id="password" name="password" required>
+
+    <button type="submit">Đăng Ký</button>
+    <p><a href="{{ url_for('login') }}">Bạn đã có tài khoản? Đăng Nhập</a></p>
 </form>
 {% endblock %}
