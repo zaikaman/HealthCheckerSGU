@@ -40,7 +40,7 @@ def login():
         
         if user:
             session['username'] = user.username  # Lưu tên người dùng vào session
-            flash("Logged in successfully!", "success")
+            #flash("Logged in successfully!", "success")
             return redirect(url_for('index'))
         else:
             flash("Invalid username or password", "danger")
@@ -49,7 +49,7 @@ def login():
 @app.route('/logout')
 def logout():
     session.pop('username', None)  # Xóa tên người dùng khỏi session
-    flash("Logged out successfully!", "success")
+    #flash("Logged out successfully!", "success")
     return redirect(url_for('index'))
 
 @app.route('/signup', methods=['GET', 'POST'])
