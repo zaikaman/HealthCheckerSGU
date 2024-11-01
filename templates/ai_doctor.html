@@ -98,12 +98,15 @@
             if (response.ok) {
                 const data = await response.json();
                 console.log("Gemini response:", data);
-                document.getElementById("analysisResult").innerHTML = "Phân tích hoàn tất: " + data.result; // Giả sử phản hồi từ server có thuộc tính `result`
-                document.getElementById("statusMessage").innerText = ""; // Xóa thông báo trạng thái
+                
+                // Remove any * characters from data.result before displaying
+                const cleanedResult = data.result.replace(/\*/g, "");
+                document.getElementById("analysisResult").innerHTML = "Phân tích hoàn tất: " + cleanedResult;
+                document.getElementById("statusMessage").innerText = ""; // Clear the status message
             } else {
                 console.error("Lỗi khi gửi audio đến server:", response.statusText);
                 document.getElementById("statusMessage").innerText = "Lỗi: Không thể phân tích âm thanh.";
-                document.getElementById("analysisResult").innerHTML = ""; // Xóa kết quả phân tích
+                document.getElementById("analysisResult").innerHTML = ""; // Clear analysis result
             }
         }
     </script>
