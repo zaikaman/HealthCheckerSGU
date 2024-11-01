@@ -4,7 +4,6 @@ from flask_bcrypt import Bcrypt
 import os
 
 app = Flask(__name__)
-app.secret_key = 'Lovelybaby*2004'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://fmu76a694pv7tx5b:igvaouje2t8tcxgd@yhrz9vns005e0734.cbetxkdyhwsb.us-east-1.rds.amazonaws.com:3306/q8b1v3rybj8kvaiu'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
