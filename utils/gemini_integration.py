@@ -10,7 +10,7 @@ def analyze_text_with_gemini(text):
         'Content-Type': 'application/json'
     }
     
-    prompt_text = "Hãy phân tích tình trạng bệnh của bệnh nhân này dựa trên văn bản này, nếu là đơn thuốc thì hãy tự suy nghĩ bệnh nhân có thể bị bệnh gì dựa trên đơn thuốc và phân tích: " + text
+    prompt_text = "Hãy phân tích tình trạng bệnh của bệnh nhân này dựa trên văn bản này, nếu là đơn thuốc thì hãy tự suy nghĩ bệnh nhân có thể bị bệnh gì dựa trên đơn thuốc và phân tích bệnh nhân nên làm gì và không nên làm gì để tình trạng bệnh tốt hơn: " + text
     
     data = {
         "contents": [
