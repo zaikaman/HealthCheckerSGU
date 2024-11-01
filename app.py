@@ -20,6 +20,10 @@ def upload_file():
     if file.filename == '':
         return redirect(request.url)
     if file:
+        # Ensure the 'uploads' folder exists
+        if not os.path.exists(app.config['UPLOAD_FOLDER']):
+            os.makedirs(app.config['UPLOAD_FOLDER'])
+
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
         file.save(filepath)
         
