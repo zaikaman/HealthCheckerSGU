@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from flask_sqlalchemy import SQLAlchemy
 import os
+from utils.ocr_processing import extract_text_from_image
+from utils.gemini_integration import analyze_text_with_gemini
 
 app = Flask(__name__)
 
