@@ -145,14 +145,18 @@ def analyze_text_with_image(text, image_path):
         print(f"An error occurred: {e}")
         return "Error: Unable to process text with Gemini AI."
     
-def analyze_audio_with_gemini(audio_path, api_key):
+def analyze_audio_with_gemini(audio_path):
+    # Đường dẫn endpoint API của Google
     api_key = "AIzaSyBCCCvVlI3FyQKLYmI2SdASxPiZvh8VvHY"
-    upload_url = f"https://generativelanguage.googleapis.com/upload/v1beta/files?key={api_key}"
+    upload_init_url = f"https://generativelanguage.googleapis.com/upload/v1beta/files?key={api_key}"
+    analysis_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={api_key}"
 
+    # Xác định loại MIME của file
     mime_type = "audio/mpeg" if audio_path.lower().endswith(".mp3") else "audio/wav"
     num_bytes = os.path.getsize(audio_path)
 
-    headers = {
+    # Thiết lập header cho bước khởi tạo upload
+    init_headers = {
         "X-Goog-Upload-Protocol": "resumable",
         "X-Goog-Upload-Command": "start",
         "X-Goog-Upload-Header-Content-Length": str(num_bytes),
@@ -160,64 +164,74 @@ def analyze_audio_with_gemini(audio_path, api_key):
         "Content-Type": "application/json"
     }
 
-    # Bước 1: Khởi tạo upload
-    response = requests.post(upload_url, headers=headers, json={"file": {"display_name": "User Audio"}})
-    if response.status_code != 200:
-        print(f"Failed to initiate upload: {response.status_code}")
-        return None
-
-    upload_url = response.headers.get("X-Goog-Upload-URL")
-
-    # Bước 2: Upload audio
-    headers = {
-        "Content-Length": str(num_bytes),
-        "X-Goog-Upload-Offset": "0",
-        "X-Goog-Upload-Command": "upload, finalize"
-    }
-    with open(audio_path, "rb") as f:
-        response = requests.post(upload_url, headers=headers, data=f)
-
-    if response.status_code != 200:
-        print(f"Failed to upload audio: {response.status_code}")
-        return None
-
-    # Lấy URI audio đã upload
-    audio_uri = response.json()["file"]["uri"]
-
-    # Bước 3: Gửi yêu cầu phân tích đến Gemini
-    analysis_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={api_key}"
-    headers = {
-        'Content-Type': 'application/json'
-    }
-
-    # Chuẩn bị dữ liệu yêu cầu
-    data = {
-        "contents": [
-            {
-                "parts": [
-                    {
-                        "file_data": {
-                            "mime_type": mime_type,
-                            "file_uri": audio_uri
-                        }
-                    }
-                ]
-            }
-        ]
-    }
-
     try:
-        # Gửi yêu cầu phân tích
-        response = requests.post(analysis_url, headers=headers, data=json.dumps(data))
+        # Bước 1: Khởi tạo upload
+        init_data = {"file": {"display_name": "User Audio"}}
+        response = requests.post(upload_init_url, headers=init_headers, json=init_data)
         
+        # Kiểm tra phản hồi của yêu cầu khởi tạo upload
+        if response.status_code != 200:
+            return f"Lỗi: Không thể khởi tạo upload. Mã trạng thái: {response.status_code}. Phản hồi: {response.text}"
+        
+        # Lấy URL từ header của phản hồi để dùng cho bước upload dữ liệu
+        upload_url = response.headers.get("X-Goog-Upload-URL")
+        if not upload_url:
+            return "Lỗi: Không nhận được URL upload từ API sau khi khởi tạo."
+
+        # Thiết lập header cho bước upload file
+        upload_headers = {
+            "Content-Length": str(num_bytes),
+            "X-Goog-Upload-Offset": "0",
+            "X-Goog-Upload-Command": "upload, finalize"
+        }
+
+        # Bước 2: Upload dữ liệu âm thanh
+        with open(audio_path, "rb") as audio_file:
+            response = requests.post(upload_url, headers=upload_headers, data=audio_file)
+        
+        # Kiểm tra phản hồi của yêu cầu upload dữ liệu
+        if response.status_code != 200:
+            return f"Lỗi: Không thể upload dữ liệu âm thanh. Mã trạng thái: {response.status_code}. Phản hồi: {response.text}"
+
+        # Lấy URI của file đã upload từ phản hồi
+        audio_uri = response.json().get("file", {}).get("uri")
+        if not audio_uri:
+            return "Lỗi: Không nhận được URI của file âm thanh từ API sau khi upload."
+
+        # Bước 3: Phân tích nội dung âm thanh
+        analysis_headers = {"Content-Type": "application/json"}
+        
+        # Dữ liệu yêu cầu cho phân tích
+        data = {
+            "contents": [
+                {
+                    "parts": [
+                        {
+                            "file_data": {
+                                "mime_type": mime_type,
+                                "file_uri": audio_uri
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+
+        # Gửi yêu cầu phân tích tới API
+        response = requests.post(analysis_url, headers=analysis_headers, data=json.dumps(data))
+        
+        # Kiểm tra phản hồi của yêu cầu phân tích
         if response.status_code == 200:
             response_data = response.json()
+            # Trả về nội dung phân tích nếu có
             if "candidates" in response_data and response_data["candidates"]:
                 return response_data["candidates"][0]["content"]["parts"][0]["text"].strip()
             else:
-                return "Lỗi: Không có nội dung nào được Gemini tạo ra."
+                return "Lỗi: Không có nội dung nào được tạo ra từ quá trình phân tích."
         else:
-            return f"Lỗi: Nhận mã trạng thái {response.status_code} với thông báo {response.text}"
+            # Trả về mã lỗi và nội dung chi tiết nếu yêu cầu phân tích thất bại
+            return f"Lỗi khi phân tích âm thanh. Mã trạng thái: {response.status_code}. Phản hồi: {response.text}"
 
     except Exception as e:
+        # Bắt và ghi lại ngoại lệ trong trường hợp xảy ra lỗi không mong muốn
         return f"Xảy ra ngoại lệ: {e}"
