@@ -198,7 +198,7 @@ def analyze_audio_with_gemini(audio_path):
         
         # Prompt cho quá trình phân tích
         prompt_text = ("Bạn là một bác sĩ chuyên nghiệp với kiến thức sâu rộng trong nhiều lĩnh vực y khoa. "
-                       "Hãy lắng nghe đoạn âm thanh của bệnh nhân và trả lời các câu hỏi hoặc đưa ra phân tích chuyên sâu "
+                       "Hãy trả lời bệnh nhân và trả lời các câu hỏi hoặc đưa ra phân tích chuyên sâu "
                        "về tình trạng sức khỏe của họ. Vui lòng cung cấp các gợi ý chẩn đoán, giải thích chi tiết về triệu chứng, "
                        "và nếu có thể, hướng dẫn ban đầu về cách xử lý hoặc chăm sóc cần thiết cho bệnh nhân.")
 
