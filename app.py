@@ -9,6 +9,9 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://fmu76a694pv7tx5b:igvaouje2t8tcx
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'your_secret_key'  # Needed if you plan to use flash messages
 
+# Cấu hình thư mục tải lên
+app.config['UPLOAD_FOLDER'] = 'uploads'  # Đặt tên cho thư mục tải lên
+
 db = SQLAlchemy(app)
 
 # Định nghĩa mô hình User
@@ -74,6 +77,7 @@ def upload_file():
     file = request.files['file']
     if file.filename == '':
         return redirect(request.url)
+    
     if file:
         # Ensure the 'uploads' folder exists
         if not os.path.exists(app.config['UPLOAD_FOLDER']):
@@ -93,6 +97,7 @@ def upload_file():
         
         # Hiển thị kết quả
         return render_template('index.html', extracted_text=raw_text, extracted_entities=extracted_entities)
+    
     return redirect(request.url)
 
 if __name__ == '__main__':
