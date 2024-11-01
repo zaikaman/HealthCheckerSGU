@@ -19,54 +19,79 @@
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
             text-align: center;
         }
-        .btn-start {
-            background-color: #007bff;
-            color: white;
-            font-size: 1.25rem;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-        }
-        .btn-start:hover {
-            background-color: #0056b3;
-        }
         .microphone {
-            display: none;
             margin-top: 20px;
+            cursor: pointer;
+        }
+        .microphone img {
+            width: 100px;
         }
     </style>
 </head>
 <body>
-    <!-- Navbar containing the navigation buttons -->
-    <nav class="navbar navbar-light bg-light">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">Bác Sĩ AI</a>
-            <a href="{{ url_for('health_analysis') }}" class="btn btn-outline-secondary">Phân Tích Sức Khỏe Dựa Trên Thể Trạng</a>
-            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary ms-2">Phân Tích Sức Khỏe Dựa Trên Hồ Sơ Y Tế</a>
-            {% if session.username %}
-                <a href="{{ url_for('logout') }}" class="btn btn-outline-danger">Đăng Xuất</a>
-            {% else %}
-                <a href="{{ url_for('login') }}" class="btn btn-outline-primary">Đăng Nhập</a>
-            {% endif %}
-        </div>
-    </nav>
-
     <div class="container">
         <h1>Chào mừng bạn đến với Bác Sĩ AI</h1>
-        <p>Nhấn vào nút bên dưới để bắt đầu.</p>
-        <button class="btn btn-start" onclick="showMicrophone()">Bắt đầu</button>
-        <div class="microphone" id="microphone">
-            <img src="https://i.ibb.co/jrmcV0r/products-2-FS10-SM058-LC-2-FS10-SM058-LC-1710120244820-1200x1200-removebg-preview.png" 
-                 alt="Microphone" width="100">
+        <p>Nhấn vào hình microphone để bắt đầu thu âm.</p>
+        <div class="microphone" onclick="toggleRecording()">
+            <img id="microphoneImg" src="https://i.ibb.co/jrmcV0r/products-2-FS10-SM058-LC-2-FS10-SM058-LC-1710120244820-1200x1200-removebg-preview.png" alt="Microphone" style="cursor: pointer;">
         </div>
+        <p id="statusMessage"></p>
+        <div id="analysisResult"></div> <!-- Div để hiển thị kết quả phân tích -->
     </div>
 
     <script>
-        function showMicrophone() {
-            document.getElementById("microphone").style.display = "block";
+        let isRecording = false;
+        let mediaRecorder;
+        let audioChunks = [];
+
+        async function toggleRecording() {
+            if (!isRecording) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+                    mediaRecorder.onstop = async () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+                        audioChunks = [];
+                        // Gửi âm thanh đến server khi người dùng dừng ghi âm
+                        await analyzeAudioWithGemini(audioBlob);
+                    };
+                    mediaRecorder.start();
+                    isRecording = true;
+                    document.getElementById("microphoneImg").style.border = "3px solid red"; // Biểu thị ghi âm
+                    document.getElementById("statusMessage").innerText = "Đang ghi âm... Nhấn lại để dừng.";
+                } catch (error) {
+                    console.error('Trình duyệt không có quyền truy cập microphone:', error);
+                    document.getElementById("statusMessage").innerText = "Lỗi: Không thể truy cập microphone.";
+                }
+            } else {
+                mediaRecorder.stop();
+                isRecording = false;
+                document.getElementById("microphoneImg").style.border = ""; // Tắt biểu thị ghi âm
+                document.getElementById("statusMessage").innerText = "Đang dừng ghi âm...";
+            }
+        }
+
+        async function analyzeAudioWithGemini(audioBlob) {
+            const formData = new FormData();
+            formData.append("audio", audioBlob, "recording.mp3");
+
+            const response = await fetch("/analyze_audio", {
+                method: "POST",
+                body: formData
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log("Gemini response:", data);
+                document.getElementById("analysisResult").innerHTML = "Phân tích hoàn tất: " + data.result; // Giả sử phản hồi từ server có thuộc tính `result`
+                document.getElementById("statusMessage").innerText = ""; // Xóa thông báo trạng thái
+            } else {
+                console.error("Lỗi khi gửi audio đến server:", response.statusText);
+                document.getElementById("statusMessage").innerText = "Lỗi: Không thể phân tích âm thanh.";
+                document.getElementById("analysisResult").innerHTML = ""; // Xóa kết quả phân tích
+            }
         }
     </script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

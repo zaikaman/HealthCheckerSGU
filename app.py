@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from flask_sqlalchemy import SQLAlchemy
 import os
 from utils.ocr_processing import extract_text_from_image
-from utils.gemini_integration import analyze_text_with_gemini, analyze_text_with_image
+from utils.gemini_integration import analyze_text_with_gemini, analyze_text_with_image, analyze_audio_with_gemini
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
@@ -13,7 +13,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'your_secret_key'  # Needed if you plan to use flash messages
 
 # Cấu hình thư mục tải lên
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg','webp'}
 app.config['UPLOAD_FOLDER'] = 'uploads'  # Đặt tên cho thư mục tải lên
 
 # Kiểm tra đuôi file
@@ -141,6 +141,22 @@ def health_analysis():
 @app.route('/ai_doctor')
 def ai_doctor():
     return render_template('ai_doctor.html')
+
+@app.route('/analyze_audio', methods=['POST'])
+def analyze_audio():
+    if 'audio' not in request.files:
+        return jsonify({"error": "Không tìm thấy tệp âm thanh."}), 400
+    
+    audio_file = request.files['audio']
+    # Giả sử bạn muốn lưu file tạm thời để phân tích
+    audio_file_path = f"/tmp/{audio_file.filename}"
+    audio_file.save(audio_file_path)
+
+    # Gọi hàm phân tích âm thanh
+    analysis_result = analyze_audio_with_gemini(audio_file_path)
+
+    # Trả về kết quả phân tích
+    return jsonify({"result": analysis_result})
 
 if __name__ == '__main__':
     if not os.path.exists(app.config['UPLOAD_FOLDER']):

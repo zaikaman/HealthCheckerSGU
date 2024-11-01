@@ -143,3 +143,84 @@ def analyze_text_with_image(text, image_path):
     except Exception as e:
         print(f"An error occurred: {e}")
         return "Error: Unable to process text with Gemini AI."
+    
+def analyze_audio_with_gemini(audio_path, api_key):
+    upload_url = f"https://generativelanguage.googleapis.com/upload/v1beta/files?key={api_key}"
+
+    mime_type = "audio/mpeg" if audio_path.lower().endswith(".mp3") else "audio/wav"
+    num_bytes = os.path.getsize(audio_path)
+
+    headers = {
+        "X-Goog-Upload-Protocol": "resumable",
+        "X-Goog-Upload-Command": "start",
+        "X-Goog-Upload-Header-Content-Length": str(num_bytes),
+        "X-Goog-Upload-Header-Content-Type": mime_type,
+        "Content-Type": "application/json"
+    }
+
+    # Bước 1: Khởi tạo upload
+    response = requests.post(upload_url, headers=headers, json={"file": {"display_name": "User Audio"}})
+    if response.status_code != 200:
+        print(f"Failed to initiate upload: {response.status_code}")
+        return None
+
+    upload_url = response.headers.get("X-Goog-Upload-URL")
+
+    # Bước 2: Upload audio
+    headers = {
+        "Content-Length": str(num_bytes),
+        "X-Goog-Upload-Offset": "0",
+        "X-Goog-Upload-Command": "upload, finalize"
+    }
+    with open(audio_path, "rb") as f:
+        response = requests.post(upload_url, headers=headers, data=f)
+
+    if response.status_code != 200:
+        print(f"Failed to upload audio: {response.status_code}")
+        return None
+
+    # Lấy URI audio đã upload
+    audio_uri = response.json()["file"]["uri"]
+
+    # Bước 3: Gửi yêu cầu phân tích đến Gemini
+    analysis_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={api_key}"
+    headers = {
+        'Content-Type': 'application/json'
+    }
+
+    # Chuẩn bị dữ liệu yêu cầu
+    data = {
+        "contents": [
+            {
+                "parts": [
+                    {
+                        "file_data": {
+                            "mime_type": mime_type,
+                            "file_uri": audio_uri
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+
+    try:
+        # Gửi yêu cầu phân tích
+        response = requests.post(analysis_url, headers=headers, data=json.dumps(data))
+
+        if response.status_code == 200:
+            response_data = response.json()
+            
+            if "candidates" in response_data and response_data["candidates"]:
+                generated_text = response_data["candidates"][0]["content"]["parts"][0]["text"]
+                return generated_text.strip()
+            else:
+                return "Không tìm thấy nội dung nào được tạo ra."
+        else:
+            print(f"Lỗi: Nhận mã trạng thái {response.status_code}")
+            return f"Lỗi: Không thể xử lý âm thanh. Mã trạng thái: {response.status_code}"
+
+    except Exception as e:
+        print(f"Đã xảy ra lỗi: {e}")
+        return "Lỗi: Không thể xử lý âm thanh với Gemini AI."
+
