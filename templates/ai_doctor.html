@@ -29,6 +29,19 @@
     </style>
 </head>
 <body>
+    <nav class="navbar navbar-light bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Bác Sĩ AI</a>
+            <a href="{{ url_for('health_analysis') }}" class="btn btn-outline-secondary">Phân Tích Sức Khỏe Dựa Trên Thể Trạng</a>
+            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary ms-2">Phân Tích Sức Khỏe Dựa Trên Hồ Sơ Y Tế</a>
+            {% if session.username %}
+                <a href="{{ url_for('logout') }}" class="btn btn-outline-danger">Đăng Xuất</a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="btn btn-outline-primary">Đăng Nhập</a>
+            {% endif %}
+        </div>
+    </nav>
+
     <div class="container">
         <h1>Chào mừng bạn đến với Bác Sĩ AI</h1>
         <p>Nhấn vào hình microphone để bắt đầu thu âm.</p>
@@ -39,6 +52,7 @@
         <div id="analysisResult"></div> <!-- Div để hiển thị kết quả phân tích -->
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
     <script>
         let isRecording = false;
         let mediaRecorder;
