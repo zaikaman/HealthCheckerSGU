@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 from flask_sqlalchemy import SQLAlchemy
 import os
 
@@ -34,11 +34,18 @@ def login():
         user = User.query.filter_by(username=username, password=password).first()  # Kiểm tra thông tin đăng nhập
         
         if user:
+            session['username'] = user.username  # Lưu tên người dùng vào session
             flash("Logged in successfully!", "success")
             return redirect(url_for('index'))
         else:
             flash("Invalid username or password", "danger")
     return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.pop('username', None)  # Xóa tên người dùng khỏi session
+    flash("Logged out successfully!", "success")
+    return redirect(url_for('index'))
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
