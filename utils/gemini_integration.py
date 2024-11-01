@@ -207,7 +207,9 @@ def analyze_audio_with_gemini(audio_path):
                 {
                     "parts": [
                         {
-                            "text": prompt_text,
+                            "text": prompt_text
+                        },
+                        {
                             "file_data": {
                                 "mime_type": mime_type,
                                 "file_uri": audio_uri
