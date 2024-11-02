@@ -6,6 +6,8 @@ from utils.gemini_integration import analyze_text_with_gemini, analyze_text_with
 from utils.text_to_speech_file import text_to_speech
 from werkzeug.utils import secure_filename
 from io import BytesIO
+from elevenlabs.client import ElevenLabs
+from elevenlabs import stream
 
 app = Flask(__name__)
 
@@ -13,6 +15,11 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://fmu76a694pv7tx5b:igvaouje2t8tcxgd@yhrz9vns005e0734.cbetxkdyhwsb.us-east-1.rds.amazonaws.com:3306/q8b1v3rybj8kvaiu'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'your_secret_key'  # Needed if you plan to use flash messages
+
+# Initialize ElevenLabs client
+client = ElevenLabs(api_key="sk_e3aafa59f9f871a27a7a33cca1b18d33b61fa8d6b8f57faa")
+
+analysis_result = ""
 
 # Cấu hình thư mục tải lên
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg','webp'}
@@ -144,13 +151,21 @@ def health_analysis():
 def ai_doctor():
     return render_template('ai_doctor.html')
 
-# Đặt biến toàn cục để lưu kết quả phân tích
-analysis_result = ""
+def stream_text_to_speech(text):
+    # Stream text-to-speech response directly from ElevenLabs
+    audio_stream = client.generate(
+        text=text,
+        voice="Brian",  # Choose the desired voice
+        model="eleven_multilingual_v2",
+        stream=True
+    )
+    return audio_stream
 
 @app.route('/analyze_audio', methods=['POST'])
 def analyze_audio():
-    global analysis_result  # Sử dụng biến toàn cục
+    global analysis_result  # Use a global variable to store the analysis result
 
+    # Check if audio is in request files
     if 'audio' not in request.files:
         return jsonify({"result": "Lỗi: Không tìm thấy tệp âm thanh."}), 400
 
@@ -158,26 +173,24 @@ def analyze_audio():
     audio_file_path = f"/tmp/{audio_file.filename}"
     audio_file.save(audio_file_path)
 
+    # Assuming analyze_audio_with_gemini is a function that processes the audio
+    # and returns the analysis result as a string
     analysis_result = analyze_audio_with_gemini(audio_file_path)
-    audio_data = text_to_speech(analysis_result)  # Tạo tệp âm thanh trong bộ nhớ
 
-    if audio_data:
-        # Trả về URL endpoint cho client để tải về và phát tệp
-        return jsonify({"result": analysis_result, "audio_url": "/download_audio"})
+    # If we have an analysis result, start streaming audio in response
+    if analysis_result:
+        return jsonify({"result": analysis_result, "audio_url": "/stream_audio"})
     else:
         return jsonify({"result": "Lỗi: Không thể tạo tệp âm thanh."}), 500
 
-@app.route('/download_audio')
-def download_audio():
+@app.route('/stream_audio')
+def stream_audio():
     global analysis_result
 
-    # Gửi tệp âm thanh trong bộ nhớ cho client
-    if analysis_result:  # Kiểm tra nếu có kết quả phân tích
-        audio_data = text_to_speech(analysis_result)
-        if audio_data:
-            return send_file(audio_data, mimetype="audio/mpeg")
-        else:
-            return jsonify({"result": "Lỗi: Không thể tải tệp âm thanh."}), 500
+    if analysis_result:
+        # Start real-time audio streaming
+        audio_stream = stream_text_to_speech(analysis_result)
+        return Response(stream(audio_stream), mimetype="audio/mpeg")
     else:
         return jsonify({"result": "Lỗi: Không có kết quả phân tích."}), 400
 
