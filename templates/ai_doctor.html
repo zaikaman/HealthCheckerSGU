@@ -45,21 +45,28 @@
     <div class="container">
         <h1>Chào mừng bạn đến với Bác Sĩ AI</h1>
         <p>Nhấn vào hình microphone để bắt đầu thu âm.</p>
-        <img src="https://i.ibb.co/qnzGV3N/image.png" alt="image" border="0" style="width: 150px; height: auto;">
+        
+        <!-- Placeholder for image or video -->
+        <div id="mediaDisplay">
+            <img id="staticImage" src="https://i.ibb.co/qnzGV3N/image.png" alt="image" border="0" style="width: 150px; height: auto;">
+        </div>
+    
         <div class="microphone" onclick="toggleRecording()">
             <img id="microphoneImg" src="https://i.ibb.co/jrmcV0r/products-2-FS10-SM058-LC-2-FS10-SM058-LC-1710120244820-1200x1200-removebg-preview.png" alt="Microphone" style="width: 50px; height: auto; cursor: pointer;">
         </div>
+    
         <p id="statusMessage"></p>
         <div id="analysisResult"></div>
-        <audio id="audioPlayer" controls></audio>
-    </div>    
-
+        
+        <audio id="audioPlayer" controls onplay="toggleMediaDisplay('video')" onpause="toggleMediaDisplay('image')" onended="toggleMediaDisplay('image')"></audio>
+    </div>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
     <script>
         let isRecording = false;
         let mediaRecorder;
         let audioChunks = [];
-
+    
         async function toggleRecording() {
             if (!isRecording) {
                 try {
@@ -69,12 +76,11 @@
                     mediaRecorder.onstop = async () => {
                         const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
                         audioChunks = [];
-                        // Gửi âm thanh đến server khi người dùng dừng ghi âm
                         await analyzeAudioWithGemini(audioBlob);
                     };
                     mediaRecorder.start();
                     isRecording = true;
-                    document.getElementById("microphoneImg").style.border = "3px solid red"; // Biểu thị ghi âm
+                    document.getElementById("microphoneImg").style.border = "3px solid red";
                     document.getElementById("statusMessage").innerText = "Đang ghi âm... Nhấn lại để dừng.";
                 } catch (error) {
                     console.error('Trình duyệt không có quyền truy cập microphone:', error);
@@ -83,30 +89,28 @@
             } else {
                 mediaRecorder.stop();
                 isRecording = false;
-                document.getElementById("microphoneImg").style.border = ""; // Tắt biểu thị ghi âm
+                document.getElementById("microphoneImg").style.border = "";
                 document.getElementById("statusMessage").innerText = "Đang phân tích...";
             }
         }
-
+    
         async function analyzeAudioWithGemini(audioBlob) {
             const formData = new FormData();
             formData.append("audio", audioBlob, "recording.mp3");
-
+    
             const response = await fetch("/analyze_audio", {
                 method: "POST",
                 body: formData
             });
-
+    
             if (response.ok) {
                 const data = await response.json();
                 console.log("Gemini response:", data);
-                
-                // Remove any * characters from data.result before displaying
+    
                 const cleanedResult = data.result.replace(/\*/g, "");
                 document.getElementById("analysisResult").innerHTML = "Phân tích hoàn tất: " + cleanedResult;
-                document.getElementById("statusMessage").innerText = ""; // Clear the status message
-
-                // Tự động phát tệp âm thanh
+                document.getElementById("statusMessage").innerText = "";
+    
                 if (data.audio_url) {
                     const audioPlayer = document.getElementById("audioPlayer");
                     audioPlayer.src = data.audio_url;
@@ -117,9 +121,20 @@
             } else {
                 console.error("Lỗi khi gửi audio đến server:", response.statusText);
                 document.getElementById("statusMessage").innerText = "Lỗi: Không thể phân tích âm thanh.";
-                document.getElementById("analysisResult").innerHTML = ""; // Clear analysis result
+                document.getElementById("analysisResult").innerHTML = "";
             }
         }
-    </script>
+    
+        function toggleMediaDisplay(type) {
+            const mediaDisplay = document.getElementById("mediaDisplay");
+            if (type === "video") {
+                mediaDisplay.innerHTML = `<div style="position:relative; width:100%; height:0px; padding-bottom:156.641%">
+                    <iframe allow="fullscreen; autoplay" allowfullscreen height="100%" src="https://streamable.com/e/5iv02h?autoplay=1&muted=1&nocontrols=1" width="100%" style="border:none; width:100%; height:100%; position:absolute; left:0px; top:0px; overflow:hidden;"></iframe>
+                </div>`;
+            } else {
+                mediaDisplay.innerHTML = `<img id="staticImage" src="https://i.ibb.co/qnzGV3N/image.png" alt="image" border="0" style="width: 150px; height: auto;">`;
+            }
+        }
+    </script>    
 </body>
 </html>
