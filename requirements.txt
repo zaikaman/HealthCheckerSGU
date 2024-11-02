@@ -7,3 +7,5 @@ flask_sqlalchemy
 flask_bcrypt
 mysqlclient
 pymysql
+gtts
+playsound
