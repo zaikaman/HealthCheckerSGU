@@ -191,8 +191,12 @@ def stream_audio():
 
         def generate_audio():
             for chunk in audio_stream:
-                if chunk:  # Ensure chunk is not empty
-                    yield chunk  # Stream each chunk to the client
+                if chunk:
+                    yield chunk
+
+            # Reset `analysis_result` after streaming completes
+            global analysis_result
+            analysis_result = None
 
         return Response(generate_audio(), mimetype="audio/wav")
     else:
