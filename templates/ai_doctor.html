@@ -126,15 +126,15 @@
         }
     
         function toggleMediaDisplay(type) {
-            const mediaDisplay = document.getElementById("mediaDisplay");
-            if (type === "video") {
-                mediaDisplay.innerHTML = `<div style="position:relative; width:100%; height:0px; padding-bottom:156.641%">
-                    <iframe allow="fullscreen; autoplay" allowfullscreen height="100%" src="https://streamable.com/e/5iv02h?autoplay=1&muted=1&nocontrols=1" width="100%" style="border:none; width:100%; height:100%; position:absolute; left:0px; top:0px; overflow:hidden;"></iframe>
-                </div>`;
-            } else {
-                mediaDisplay.innerHTML = `<img id="staticImage" src="https://i.ibb.co/qnzGV3N/image.png" alt="image" border="0" style="width: 150px; height: auto;">`;
-            }
+        const mediaDisplay = document.getElementById("mediaDisplay");
+        if (type === "video") {
+            mediaDisplay.innerHTML = `<div style="position:relative; width:150px; height:auto;">
+                <iframe allow="fullscreen; autoplay" allowfullscreen height="100%" src="https://streamable.com/e/5iv02h?autoplay=1&muted=1&nocontrols=1" width="100%" style="border:none; width:100%; height:auto; position:absolute; left:0px; top:0px; overflow:hidden;"></iframe>
+            </div>`;
+        } else {
+            mediaDisplay.innerHTML = `<img id="staticImage" src="https://i.ibb.co/qnzGV3N/image.png" alt="image" border="0" style="width: 150px; height: auto;">`;
         }
+    }
     </script>    
 </body>
 </html>
