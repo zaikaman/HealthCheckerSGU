@@ -49,7 +49,8 @@
             <img id="microphoneImg" src="https://i.ibb.co/jrmcV0r/products-2-FS10-SM058-LC-2-FS10-SM058-LC-1710120244820-1200x1200-removebg-preview.png" alt="Microphone" style="cursor: pointer;">
         </div>
         <p id="statusMessage"></p>
-        <div id="analysisResult"></div> <!-- Div để hiển thị kết quả phân tích -->
+        <div id="analysisResult"></div>
+        <audio id="audioPlayer" controls></audio>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
@@ -106,8 +107,12 @@
 
                 // Tự động phát tệp âm thanh
                 if (data.audio_url) {
-                    const audio = new Audio(data.audio_url);
-                    audio.play();
+                    const audioPlayer = document.getElementById("audioPlayer");
+                    audioPlayer.src = data.audio_url;
+                    audioPlayer.play().catch((error) => {
+                        console.log("Autoplay was prevented:", error);
+                        document.getElementById("statusMessage").innerText = "Nhấn play để nghe kết quả.";
+                    });
                 }
             } else {
                 console.error("Lỗi khi gửi audio đến server:", response.statusText);
