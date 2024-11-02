@@ -194,7 +194,7 @@ def stream_audio():
                 if chunk:  # Ensure chunk is not empty
                     yield chunk  # Stream each chunk to the client
 
-        return Response(generate_audio(), mimetype="audio/mpeg")
+        return Response(generate_audio(), mimetype="audio/wav")
     else:
         return jsonify({"result": "Lỗi: Không có kết quả phân tích."}), 400
 
