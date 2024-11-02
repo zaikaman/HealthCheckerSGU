@@ -155,7 +155,7 @@ def stream_text_to_speech(text):
     audio_stream = client.generate(
         text=text,
         voice="Eric",  # Choose the desired voice
-        model="eleven_multilingual_v2",
+        model="eleven_turbo_v2_5",
         stream=True
     )
     return audio_stream
