@@ -192,7 +192,7 @@ def stream_audio():
                 if chunk:
                     yield chunk
 
-        return Response(generate_audio(), mimetype="audio/mp4")
+        return Response(generate_audio(), mimetype="audio/mpeg")
     else:
         return jsonify({"result": "Lỗi: Không có kết quả phân tích."}), 400
 
