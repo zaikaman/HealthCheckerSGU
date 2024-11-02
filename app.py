@@ -5,6 +5,7 @@ from utils.ocr_processing import extract_text_from_image
 from utils.gemini_integration import analyze_text_with_gemini, analyze_text_with_image, analyze_audio_with_gemini
 from utils.text_to_speech import text_to_speech
 from werkzeug.utils import secure_filename
+from io import BytesIO
 
 app = Flask(__name__)
 
@@ -152,19 +153,23 @@ def analyze_audio():
     audio_file_path = f"/tmp/{audio_file.filename}"
     audio_file.save(audio_file_path)
 
-    # Thực hiện phân tích và lưu tệp âm thanh với text_to_speech
     analysis_result = analyze_audio_with_gemini(audio_file_path)
-    output_audio_path = "/tmp/output.mp3"
-    text_to_speech(analysis_result, output_path=output_audio_path)
+    audio_data = text_to_speech(analysis_result)  # Tạo tệp âm thanh trong bộ nhớ
 
-    # Trả về URL của tệp âm thanh cho client
-    return jsonify({"result": analysis_result, "audio_url": "/download_audio"})
-    
+    if audio_data:
+        # Trả về URL endpoint cho client để tải về và phát tệp
+        return jsonify({"result": analysis_result, "audio_url": "/download_audio"})
+    else:
+        return jsonify({"result": "Lỗi: Không thể tạo tệp âm thanh."}), 500
 
 @app.route('/download_audio')
 def download_audio():
-    # Gửi tệp âm thanh đã lưu cho client
-    return send_file("/tmp/output.mp3", as_attachment=False, mimetype="audio/mpeg")
+    # Gửi tệp âm thanh trong bộ nhớ cho client
+    audio_data = text_to_speech("Text cần đọc")
+    if audio_data:
+        return send_file(audio_data, mimetype="audio/mpeg")
+    else:
+        return jsonify({"result": "Lỗi: Không thể tải tệp âm thanh."}), 500
 
 if __name__ == '__main__':
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
