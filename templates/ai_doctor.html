@@ -124,7 +124,7 @@
                 console.log("Gemini response:", data);
     
                 const cleanedResult = data.result.replace(/\*/g, "");
-                document.getElementById("analysisResult").innerHTML = "Phân tích hoàn tất: " + cleanedResult;
+                // document.getElementById("analysisResult").innerHTML = "Phân tích hoàn tất: " + cleanedResult;
                 document.getElementById("statusMessage").innerText = "";
     
                 if (data.audio_url) {
