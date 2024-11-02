@@ -7,6 +7,4 @@ flask_sqlalchemy
 flask_bcrypt
 mysqlclient
 pymysql
-pyttsx3
-pydub
 elevenlabs
