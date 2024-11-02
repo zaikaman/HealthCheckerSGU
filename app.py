@@ -144,8 +144,13 @@ def health_analysis():
 def ai_doctor():
     return render_template('ai_doctor.html')
 
+# Đặt biến toàn cục để lưu kết quả phân tích
+analysis_result = ""
+
 @app.route('/analyze_audio', methods=['POST'])
 def analyze_audio():
+    global analysis_result  # Sử dụng biến toàn cục
+
     if 'audio' not in request.files:
         return jsonify({"result": "Lỗi: Không tìm thấy tệp âm thanh."}), 400
 
@@ -164,12 +169,17 @@ def analyze_audio():
 
 @app.route('/download_audio')
 def download_audio():
+    global analysis_result  # Sử dụng biến toàn cục
+
     # Gửi tệp âm thanh trong bộ nhớ cho client
-    audio_data = text_to_speech("Text cần đọc")
-    if audio_data:
-        return send_file(audio_data, mimetype="audio/mpeg")
+    if analysis_result:  # Kiểm tra nếu có kết quả phân tích
+        audio_data = text_to_speech(analysis_result)
+        if audio_data:
+            return send_file(audio_data, mimetype="audio/mpeg")
+        else:
+            return jsonify({"result": "Lỗi: Không thể tải tệp âm thanh."}), 500
     else:
-        return jsonify({"result": "Lỗi: Không thể tải tệp âm thanh."}), 500
+        return jsonify({"result": "Lỗi: Không có kết quả phân tích."}), 400
 
 if __name__ == '__main__':
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
