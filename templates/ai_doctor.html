@@ -144,7 +144,10 @@
         function toggleMediaDisplay(type) {
             const mediaDisplay = document.getElementById("mediaDisplay");
             if (type === "video") {
-                mediaDisplay.innerHTML = `<iframe class="media-content" allow="fullscreen; autoplay" allowfullscreen src="https://streamable.com/e/5iv02h?autoplay=1&muted=1&nocontrols=1" style="border:none;"></iframe>`;
+                mediaDisplay.innerHTML = `
+                    <div style="position: relative; width: 100%; height: 100%;">
+                        <iframe class="media-content" allow="fullscreen; autoplay" allowfullscreen src="https://streamable.com/e/5iv02h?autoplay=1&muted=1&nocontrols=1" style="border:none; pointer-events: none;"></iframe>
+                    </div>`;
             } else {
                 mediaDisplay.innerHTML = `<img id="staticImage" src="https://i.ibb.co/qnzGV3N/image.png" alt="image" border="0" class="media-content">`;
             }
