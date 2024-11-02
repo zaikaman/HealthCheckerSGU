@@ -105,13 +105,16 @@
                 document.getElementById("analysisResult").innerHTML = "Phân tích hoàn tất: " + cleanedResult;
                 document.getElementById("statusMessage").innerText = ""; // Clear the status message
 
-                // Tự động phát tệp âm thanh
                 if (data.audio_url) {
                     const audioPlayer = document.getElementById("audioPlayer");
                     audioPlayer.src = data.audio_url;
-                    audioPlayer.play().catch((error) => {
-                        console.log("Autoplay was prevented:", error);
-                    });
+
+                    // Wait until the audio can play through before starting playback
+                    audioPlayer.oncanplaythrough = () => {
+                        audioPlayer.play().catch((error) => {
+                            console.log("Autoplay was prevented:", error);
+                        });
+                    };
                 }
             } else {
                 console.error("Lỗi khi gửi audio đến server:", response.statusText);
