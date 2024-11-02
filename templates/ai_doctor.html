@@ -47,8 +47,8 @@
         <p>Nhấn vào hình microphone để bắt đầu thu âm.</p>
         
         <!-- Placeholder for image or video -->
-        <div id="mediaDisplay">
-            <img id="staticImage" src="https://i.ibb.co/qnzGV3N/image.png" alt="image" border="0" style="width: 150px; height: auto;">
+        <div id="mediaDisplay" class="media-container">
+            <img id="staticImage" src="https://i.ibb.co/qnzGV3N/image.png" alt="image" border="0" class="media-content">
         </div>
     
         <div class="microphone" onclick="toggleRecording()">
@@ -60,6 +60,22 @@
         
         <audio id="audioPlayer" controls onplay="toggleMediaDisplay('video')" onpause="toggleMediaDisplay('image')" onended="toggleMediaDisplay('image')"></audio>
     </div>
+    
+    <style>
+        /* Define a fixed size for the media container */
+        .media-container {
+            width: 150px;
+            height: 150px;
+            position: relative;
+            margin: 0 auto; /* Center the media container */
+        }
+    
+        .media-content {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Ensures the content fills the container while maintaining aspect ratio */
+        }
+    </style>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -126,15 +142,13 @@
         }
     
         function toggleMediaDisplay(type) {
-        const mediaDisplay = document.getElementById("mediaDisplay");
-        if (type === "video") {
-            mediaDisplay.innerHTML = `<div style="position:relative; width:150px; height:auto;">
-                <iframe allow="fullscreen; autoplay" allowfullscreen height="100%" src="https://streamable.com/e/5iv02h?autoplay=1&muted=1&nocontrols=1" width="100%" style="border:none; width:100%; height:auto; position:absolute; left:0px; top:0px; overflow:hidden;"></iframe>
-            </div>`;
-        } else {
-            mediaDisplay.innerHTML = `<img id="staticImage" src="https://i.ibb.co/qnzGV3N/image.png" alt="image" border="0" style="width: 150px; height: auto;">`;
+            const mediaDisplay = document.getElementById("mediaDisplay");
+            if (type === "video") {
+                mediaDisplay.innerHTML = `<iframe class="media-content" allow="fullscreen; autoplay" allowfullscreen src="https://streamable.com/e/5iv02h?autoplay=1&muted=1&nocontrols=1" style="border:none;"></iframe>`;
+            } else {
+                mediaDisplay.innerHTML = `<img id="staticImage" src="https://i.ibb.co/qnzGV3N/image.png" alt="image" border="0" class="media-content">`;
+            }
         }
-    }
     </script>    
 </body>
 </html>
