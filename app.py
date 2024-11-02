@@ -151,13 +151,18 @@ def ai_doctor():
     return render_template('ai_doctor.html')
 
 def generate_text_to_speech_bytes(text):
-    # Generate TTS response from ElevenLabs and store it in BytesIO
-    audio = client.generate(
+    # Generate TTS response from ElevenLabs
+    audio_stream = client.generate(
         text=text,
         voice="Eric",
         model="eleven_turbo_v2_5"
     )
-    audio_io = BytesIO(audio)  # Store audio data in memory
+    
+    # Combine chunks from generator into a single bytes object
+    audio_data = b''.join(chunk for chunk in audio_stream)
+
+    # Store audio data in BytesIO
+    audio_io = BytesIO(audio_data)
     audio_io.seek(0)  # Ensure pointer is at the start for reading
     return audio_io
 
