@@ -162,8 +162,6 @@ def stream_text_to_speech(text):
 
 @app.route('/analyze_audio', methods=['POST'])
 def analyze_audio():
-    global analysis_result  # Use a global variable to store the analysis result
-
     # Check if audio is in request files
     if 'audio' not in request.files:
         return jsonify({"result": "Lỗi: Không tìm thấy tệp âm thanh."}), 400
@@ -172,20 +170,20 @@ def analyze_audio():
     audio_file_path = f"/tmp/{audio_file.filename}"
     audio_file.save(audio_file_path)
 
-    # Assuming analyze_audio_with_gemini is a function that processes the audio
-    # and returns the analysis result as a string
+    # Analyze the audio using Gemini integration
     analysis_result = analyze_audio_with_gemini(audio_file_path)
 
-    # If we have an analysis result, start streaming audio in response
+    # If analysis is successful, stream the audio in the response
     if analysis_result:
-        return jsonify({"result": analysis_result, "audio_url": "/stream_audio"})
+        audio_stream_url = url_for('stream_audio', result=analysis_result)
+        return jsonify({"result": analysis_result, "audio_url": audio_stream_url})
     else:
         return jsonify({"result": "Lỗi: Không thể tạo tệp âm thanh."}), 500
 
 @app.route('/stream_audio')
 def stream_audio():
-    global analysis_result
-
+    analysis_result = request.args.get('result')
+    
     if analysis_result:
         audio_stream = stream_text_to_speech(analysis_result)
 
@@ -193,10 +191,6 @@ def stream_audio():
             for chunk in audio_stream:
                 if chunk:
                     yield chunk
-
-            # Reset `analysis_result` after streaming completes
-            global analysis_result
-            analysis_result = None
 
         return Response(generate_audio(), mimetype="audio/wav")
     else:
