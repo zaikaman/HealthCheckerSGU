@@ -169,7 +169,7 @@ def analyze_audio():
 
 @app.route('/download_audio')
 def download_audio():
-    global analysis_result  # Sử dụng biến toàn cục
+    global analysis_result
 
     # Gửi tệp âm thanh trong bộ nhớ cho client
     if analysis_result:  # Kiểm tra nếu có kết quả phân tích
