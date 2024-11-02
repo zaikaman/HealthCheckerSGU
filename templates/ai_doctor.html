@@ -102,10 +102,10 @@
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                     // Specify the desired audio format. 'audio/webm' is more widely supported
-                    mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/wav' });
+                    mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
                     mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
                     mediaRecorder.onstop = async () => {
-                        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
                         audioChunks = [];
                         await analyzeAudioWithGemini(audioBlob);
                     };
@@ -128,7 +128,7 @@
         // Function to send audio to the server for analysis
         async function analyzeAudioWithGemini(audioBlob) {
             const formData = new FormData();
-            formData.append("audio", audioBlob, "recording.wav"); // Use 'recording.webm' as the filename
+            formData.append("audio", audioBlob, "recording.webm"); // Use 'recording.webm' as the filename
 
             const response = await fetch("/analyze_audio", {
                 method: "POST",
