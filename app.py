@@ -187,9 +187,14 @@ def stream_audio():
     global analysis_result
 
     if analysis_result:
-        # Start real-time audio streaming
         audio_stream = stream_text_to_speech(analysis_result)
-        return Response(stream(audio_stream), mimetype="audio/mpeg")
+
+        def generate_audio():
+            for chunk in audio_stream:
+                if chunk:  # Ensure chunk is not empty
+                    yield chunk  # Stream each chunk to the client
+
+        return Response(generate_audio(), mimetype="audio/mpeg")
     else:
         return jsonify({"result": "Lỗi: Không có kết quả phân tích."}), 400
 
