@@ -194,10 +194,6 @@ def stream_audio():
                 if chunk:
                     yield chunk
 
-            # Reset `analysis_result` after streaming completes
-            global analysis_result
-            analysis_result = None
-
         return Response(generate_audio(), mimetype="audio/wav")
     else:
         return jsonify({"result": "Lỗi: Không có kết quả phân tích."}), 400
