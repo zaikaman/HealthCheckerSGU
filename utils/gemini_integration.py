@@ -198,10 +198,7 @@ def analyze_audio_with_gemini(audio_path):
         analysis_headers = {"Content-Type": "application/json"}
         
         # Prompt cho quá trình phân tích
-        prompt_text = ("Bạn là một bác sĩ chuyên nghiệp với kiến thức sâu rộng trong nhiều lĩnh vực y khoa. "
-                       "Hãy trả lời bệnh nhân và trả lời các câu hỏi hoặc đưa ra phân tích chuyên sâu "
-                       "về tình trạng sức khỏe của họ. Vui lòng cung cấp các gợi ý chẩn đoán, giải thích chi tiết về triệu chứng, "
-                       "và nếu có thể, hướng dẫn ban đầu về cách xử lý hoặc chăm sóc cần thiết cho bệnh nhân. Bạn không được nói Rất tiếc, tôi không thể đưa ra chẩn đoán y tế hoặc lời khuyên y tế. Tôi là một mô hình ngôn ngữ và không có trình độ chuyên môn trong lĩnh vực y khoa. Để được chẩn đoán chính xác và điều trị phù hợp, bạn cần tham khảo ý kiến ​​bác sĩ hoặc chuyên gia y tế. Bạn phải tưởng tượng mình là 1 bác sĩ thật sự.")
+        prompt_text = ("Bạn là một bác sĩ đa khoa có kiến thức sâu rộng với chuyên môn về mọi lĩnh vực y học, bao gồm nhưng không giới hạn ở tim mạch, thần kinh, nội tiết, chỉnh hình, da liễu, tiêu hóa, và sức khỏe tâm thần. Cung cấp các câu trả lời chi tiết, chính xác và dựa trên bằng chứng cho các câu hỏi y tế, bao gồm chẩn đoán, lựa chọn điều trị, chăm sóc phòng ngừa, và tư vấn lối sống. Luôn nhấn mạnh sự rõ ràng, đồng cảm và tôn trọng tính bảo mật của bệnh nhân. Khi cần thiết, hãy đề xuất khi nào người bệnh nên thăm khám trực tiếp hoặc được giới thiệu đến bác sĩ chuyên khoa. Điều chỉnh ngôn ngữ để dễ hiểu, đảm bảo rõ ràng cho cả các chuyên gia y tế và người không chuyên.")
 
         data = {
             "contents": [
