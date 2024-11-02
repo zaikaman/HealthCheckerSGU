@@ -96,14 +96,16 @@
         let mediaRecorder;
         let audioChunks = [];
     
+        // Function to start or stop recording
         async function toggleRecording() {
             if (!isRecording) {
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    mediaRecorder = new MediaRecorder(stream);
+                    // Specify the desired audio format. 'audio/webm' is more widely supported
+                    mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
                     mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
                     mediaRecorder.onstop = async () => {
-                        const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
                         audioChunks = [];
                         await analyzeAudioWithGemini(audioBlob);
                     };
@@ -122,24 +124,25 @@
                 document.getElementById("statusMessage").innerText = "Đang phân tích...";
             }
         }
-    
+
+        // Function to send audio to the server for analysis
         async function analyzeAudioWithGemini(audioBlob) {
             const formData = new FormData();
-            formData.append("audio", audioBlob, "recording.mp3");
-    
+            formData.append("audio", audioBlob, "recording.webm"); // Use 'recording.webm' as the filename
+
             const response = await fetch("/analyze_audio", {
                 method: "POST",
                 body: formData
             });
-    
+
             if (response.ok) {
                 const data = await response.json();
                 console.log("Gemini response:", data);
-    
+
                 const cleanedResult = data.result.replace(/\*/g, "");
-                // document.getElementById("analysisResult").innerHTML = "Phân tích hoàn tất: " + cleanedResult;
                 document.getElementById("statusMessage").innerText = "";
-    
+
+                // Play audio if the URL is provided
                 if (data.audio_url) {
                     const audioPlayer = document.getElementById("audioPlayer");
                     audioPlayer.src = data.audio_url;
