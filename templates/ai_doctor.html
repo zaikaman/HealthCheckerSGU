@@ -103,6 +103,12 @@
                 const cleanedResult = data.result.replace(/\*/g, "");
                 document.getElementById("analysisResult").innerHTML = "Phân tích hoàn tất: " + cleanedResult;
                 document.getElementById("statusMessage").innerText = ""; // Clear the status message
+
+                // Tự động phát tệp âm thanh
+                if (data.audio_url) {
+                    const audio = new Audio(data.audio_url);
+                    audio.play();
+                }
             } else {
                 console.error("Lỗi khi gửi audio đến server:", response.statusText);
                 document.getElementById("statusMessage").innerText = "Lỗi: Không thể phân tích âm thanh.";

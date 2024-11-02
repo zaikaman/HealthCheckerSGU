@@ -8,4 +8,3 @@ flask_bcrypt
 mysqlclient
 pymysql
 gtts
-playsound

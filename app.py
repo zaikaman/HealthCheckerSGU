@@ -151,10 +151,19 @@ def analyze_audio():
     audio_file_path = f"/tmp/{audio_file.filename}"
     audio_file.save(audio_file_path)
 
+    # Thực hiện phân tích và lưu tệp âm thanh với text_to_speech
     analysis_result = analyze_audio_with_gemini(audio_file_path)
+    output_audio_path = "/tmp/output.mp3"
+    text_to_speech(analysis_result, output_path=output_audio_path)
 
-    # Trả về kết quả phân tích hoặc thông báo lỗi
-    return jsonify({"result": analysis_result})
+    # Trả về URL của tệp âm thanh cho client
+    return jsonify({"result": analysis_result, "audio_url": "/download_audio"})
+    
+
+@app.route('/download_audio')
+def download_audio():
+    # Gửi tệp âm thanh đã lưu cho client
+    return send_file("/tmp/output.mp3", as_attachment=False, mimetype="audio/mpeg")
 
 if __name__ == '__main__':
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
