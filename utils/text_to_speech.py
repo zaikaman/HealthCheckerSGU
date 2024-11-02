@@ -1,7 +1,6 @@
 # text_to_speech.py
 
 from gtts import gTTS
-import os
 
 def text_to_speech(text, lang='vi', output_path="output.mp3"):
     """
