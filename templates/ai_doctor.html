@@ -111,7 +111,7 @@
                     audioPlayer.src = data.audio_url;
                     audioPlayer.play().catch((error) => {
                         console.log("Autoplay was prevented:", error);
-                        document.getElementById("statusMessage").innerText = "Nhấn play để nghe kết quả.";
+                        document.getElementById("statusMessage").innerText = "Đang load kết quả...";
                     });
                 }
             } else {
@@ -121,5 +121,33 @@
             }
         }
     </script>
+    <div>
+        <button onclick="downloadAudio()">Download Audio</button>
+    </div>
+    
+    <script>
+        async function downloadAudio() {
+            try {
+                const response = await fetch('/download_audio');
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'analysis_audio.wav';
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                } else {
+                    console.error("Failed to download audio:", response.statusText);
+                    alert("Lỗi: Không thể tải xuống âm thanh.");
+                }
+            } catch (error) {
+                console.error("An error occurred during the download:", error);
+                alert("Lỗi: Đã xảy ra sự cố khi tải xuống.");
+            }
+        }
+    </script>
+    
 </body>
 </html>
