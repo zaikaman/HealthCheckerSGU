@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, Response, send_file
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, Response
 from flask_sqlalchemy import SQLAlchemy
 import os
 from utils.ocr_processing import extract_text_from_image
@@ -201,26 +201,6 @@ def stream_audio():
         return Response(generate_audio(), mimetype="audio/wav")
     else:
         return jsonify({"result": "Lỗi: Không có kết quả phân tích."}), 400
-    
-@app.route('/download_audio')
-def download_audio():
-    global analysis_result
-
-    if analysis_result:
-        # Generate the audio stream for download
-        audio_stream = stream_text_to_speech(analysis_result)
-
-        # Save the stream to a temporary file for download
-        temp_audio_path = "/tmp/analysis_audio.wav"
-        with open(temp_audio_path, "wb") as f:
-            for chunk in audio_stream:
-                if chunk:
-                    f.write(chunk)
-
-        # Send the file as an attachment for download
-        return send_file(temp_audio_path, as_attachment=True, download_name="analysis_audio.wav")
-    else:
-        return jsonify({"result": "Lỗi: Không có tệp âm thanh để tải xuống."}), 400
 
 if __name__ == '__main__':
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
