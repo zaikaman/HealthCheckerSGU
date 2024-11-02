@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 import os
 from utils.ocr_processing import extract_text_from_image
 from utils.gemini_integration import analyze_text_with_gemini, analyze_text_with_image, analyze_audio_with_gemini
-from utils.text_to_speech import text_to_speech
+from utils.text_to_speech_file import text_to_speech
 from werkzeug.utils import secure_filename
 from io import BytesIO
 

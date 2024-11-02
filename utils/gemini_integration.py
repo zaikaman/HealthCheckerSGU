@@ -2,7 +2,7 @@ import requests
 import json
 import re
 import os
-from text_to_speech import text_to_speech
+from utils.text_to_speech_file import text_to_speech
 
 def upload_image_to_gemini(image_path, api_key):
     api_key = "AIzaSyBCCCvVlI3FyQKLYmI2SdASxPiZvh8VvHY"
