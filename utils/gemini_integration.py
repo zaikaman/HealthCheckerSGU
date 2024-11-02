@@ -2,7 +2,6 @@ import requests
 import json
 import re
 import os
-from utils.text_to_speech_file import text_to_speech
 
 def upload_image_to_gemini(image_path, api_key):
     api_key = "AIzaSyBCCCvVlI3FyQKLYmI2SdASxPiZvh8VvHY"
@@ -224,9 +223,6 @@ def analyze_audio_with_gemini(audio_path):
             response_data = response.json()
             if "candidates" in response_data and response_data["candidates"]:
                 result_text = response_data["candidates"][0]["content"]["parts"][0]["text"].strip()
-                
-                # Gọi hàm text_to_speech cho câu trả lời
-                text_to_speech(result_text)
                 
                 return result_text
             else:
