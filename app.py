@@ -19,7 +19,6 @@ app.secret_key = 'your_secret_key'  # Needed if you plan to use flash messages
 client = ElevenLabs(api_key="sk_e3aafa59f9f871a27a7a33cca1b18d33b61fa8d6b8f57faa")
 
 analysis_result = ""
-audio_stream_data = None
 
 # Cấu hình thư mục tải lên
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg','webp'}
@@ -151,20 +150,21 @@ def health_analysis():
 def ai_doctor():
     return render_template('ai_doctor.html')
 
-def generate_audio_stream(text):
-    """Generate the audio stream and cache it in `audio_stream_data`."""
-    global audio_stream_data
-    audio_stream_data = b"".join(chunk for chunk in client.generate(
+def stream_text_to_speech(text):
+    # Stream text-to-speech response directly from ElevenLabs
+    audio_stream = client.generate(
         text=text,
-        voice="Eric",
+        voice="Eric",  # Choose the desired voice
         model="eleven_turbo_v2_5",
         stream=True
-    ))
+    )
+    return audio_stream
 
 @app.route('/analyze_audio', methods=['POST'])
 def analyze_audio():
-    global analysis_result, audio_stream_data
+    global analysis_result  # Use a global variable to store the analysis result
 
+    # Check if audio is in request files
     if 'audio' not in request.files:
         return jsonify({"result": "Lỗi: Không tìm thấy tệp âm thanh."}), 400
 
@@ -172,22 +172,31 @@ def analyze_audio():
     audio_file_path = f"/tmp/{audio_file.filename}"
     audio_file.save(audio_file_path)
 
+    # Assuming analyze_audio_with_gemini is a function that processes the audio
+    # and returns the analysis result as a string
     analysis_result = analyze_audio_with_gemini(audio_file_path)
 
-    # Generate the audio stream data only if there's a result
+    # If we have an analysis result, start streaming audio in response
     if analysis_result:
-        generate_audio_stream(analysis_result)
         return jsonify({"result": analysis_result, "audio_url": "/stream_audio"})
     else:
         return jsonify({"result": "Lỗi: Không thể tạo tệp âm thanh."}), 500
 
 @app.route('/stream_audio')
 def stream_audio():
-    global audio_stream_data
+    global analysis_result
 
-    if audio_stream_data:
+    if analysis_result:
+        audio_stream = stream_text_to_speech(analysis_result)
+
         def generate_audio():
-            yield audio_stream_data
+            for chunk in audio_stream:
+                if chunk:
+                    yield chunk
+
+            # Reset `analysis_result` after streaming completes
+            global analysis_result
+            analysis_result = None
 
         return Response(generate_audio(), mimetype="audio/wav")
     else:
