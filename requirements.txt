@@ -9,3 +9,4 @@ mysqlclient
 pymysql
 pyttsx3
 pydub
+elevenlabs[pyaudio]
