@@ -97,22 +97,21 @@
             });
 
             if (response.ok) {
-                const data = await response.json();
-                console.log("Gemini response:", data);
-                
-                // Remove any * characters from data.result before displaying
-                const cleanedResult = data.result.replace(/\*/g, "");
+                // Read audio data from the response
+                const audioBlob = await response.blob();
+
+                // Create a URL for the audio blob and assign it to the audio player source
+                const audioUrl = URL.createObjectURL(audioBlob);
+
                 document.getElementById("analysisResult").innerHTML = "Phân tích hoàn tất: " + cleanedResult;
                 document.getElementById("statusMessage").innerText = ""; // Clear the status message
 
-                // Tự động phát tệp âm thanh
-                if (data.audio_url) {
-                    const audioPlayer = document.getElementById("audioPlayer");
-                    audioPlayer.src = data.audio_url;
-                    audioPlayer.play().catch((error) => {
-                        console.log("Autoplay was prevented:", error);
-                    });
-                }
+                // Autoplay the audio
+                const audioPlayer = document.getElementById("audioPlayer");
+                audioPlayer.src = audioUrl;
+                audioPlayer.play().catch((error) => {
+                    console.log("Autoplay was prevented:", error);
+                });
             } else {
                 console.error("Lỗi khi gửi audio đến server:", response.statusText);
                 document.getElementById("statusMessage").innerText = "Lỗi: Không thể phân tích âm thanh.";
