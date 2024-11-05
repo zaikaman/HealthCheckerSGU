@@ -53,20 +53,39 @@
     </style>
 </head>
 <body>
-    <!-- Navbar chứa nút đăng nhập hoặc đăng xuất -->
-    <nav class="navbar navbar-light bg-light">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">Phân Tích Hồ Sơ Y Tế Hoặc Đơn Thuốc</a>
-            <a href="{{ url_for('health_analysis') }}" class="btn btn-outline-secondary">Phân Tích Sức Khỏe Dựa Trên Thể Trạng</a>
-            <a href="{{ url_for('ai_doctor') }}" class="btn btn-outline-secondary ms-2">Bác Sĩ AI</a>
-            {% if session.username %}
-                <a href="{{ url_for('logout') }}" class="btn btn-outline-danger">Đăng Xuất</a>
-            {% else %}
-                <a href="{{ url_for('login') }}" class="btn btn-outline-primary">Đăng Nhập</a>
-            {% endif %}
-        </div>
-    </nav>
-
+    <!-- Navbar with Dropdown Menu -->
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">Phân Tích Hồ Sơ Y Tế Hoặc Đơn Thuốc</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarDropdown" aria-controls="navbarDropdown" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarDropdown">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Menu
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                                <li><a class="dropdown-item" href="{{ url_for('health_analysis') }}">Phân Tích Sức Khỏe Dựa Trên Thể Trạng</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('ai_doctor') }}">Bác Sĩ AI</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                        {% if session.username %}
+                            <li class="nav-item">
+                                <a href="{{ url_for('logout') }}" class="btn btn-outline-danger">Đăng Xuất</a>
+                            </li>
+                        {% else %}
+                            <li class="nav-item">
+                                <a href="{{ url_for('login') }}" class="btn btn-outline-primary">Đăng Nhập</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </nav>
     <div class="container">
         <h1>Phân Tích Hồ Sơ Y Tế Hoặc Đơn Thuốc</h1>
         <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data" class="text-center">

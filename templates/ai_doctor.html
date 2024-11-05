@@ -29,18 +29,39 @@
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-light bg-light">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">Bác Sĩ AI</a>
-            <a href="{{ url_for('health_analysis') }}" class="btn btn-outline-secondary">Phân Tích Sức Khỏe Dựa Trên Thể Trạng</a>
-            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary ms-2">Phân Tích Sức Khỏe Dựa Trên Hồ Sơ Y Tế</a>
-            {% if session.username %}
-                <a href="{{ url_for('logout') }}" class="btn btn-outline-danger">Đăng Xuất</a>
-            {% else %}
-                <a href="{{ url_for('login') }}" class="btn btn-outline-primary">Đăng Nhập</a>
-            {% endif %}
-        </div>
-    </nav>
+    <!-- Navbar with Dropdown Menu -->
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">Bác Sĩ AI</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNavDropdown">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Menu
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                                <li><a class="dropdown-item" href="{{ url_for('health_analysis') }}">Phân Tích Sức Khỏe Dựa Trên Thể Trạng</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('index') }}">Phân Tích Sức Khỏe Dựa Trên Hồ Sơ Y Tế</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav ms-auto">
+                        {% if session.username %}
+                            <li class="nav-item">
+                                <a href="{{ url_for('logout') }}" class="btn btn-outline-danger">Đăng Xuất</a>
+                            </li>
+                        {% else %}
+                            <li class="nav-item">
+                                <a href="{{ url_for('login') }}" class="btn btn-outline-primary">Đăng Nhập</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </nav>
 
     <div class="container">
         <h1>Chào mừng bạn đến với Bác Sĩ AI</h1>
