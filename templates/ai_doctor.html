@@ -161,8 +161,10 @@
                 console.log("Gemini response:", data);
 
                 const cleanedResult = data.result.replace(/\*/g, "");
-                document.getElementById("analysisResult").innerHTML = "Phân tích hoàn tất: " + cleanedResult;
                 document.getElementById("statusMessage").innerText = "";
+
+                // Typing effect
+                typeText("analysisResult", "Phân tích hoàn tất: " + cleanedResult);
 
                 // Play audio if the URL is provided
                 if (data.audio_url) {
@@ -177,6 +179,23 @@
                 document.getElementById("statusMessage").innerText = "Lỗi: Không thể phân tích âm thanh.";
                 document.getElementById("analysisResult").innerHTML = "";
             }
+        }
+
+        // Function to simulate typing effect
+        function typeText(elementId, text) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = "";  // Clear the element before starting
+            let index = 0;
+            
+            function type() {
+                if (index < text.length) {
+                    element.innerHTML += text.charAt(index);
+                    index++;
+                    setTimeout(type, 50);  // Delay between each letter (50ms)
+                }
+            }
+            
+            type();  // Start typing
         }
     
         function toggleMediaDisplay(type) {
