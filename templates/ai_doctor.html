@@ -27,6 +27,23 @@
         .microphone img {
             width: 100px;
         }
+        @media (max-width: 991px) {
+            .navbar-collapse {
+                background-color: #005082;
+                padding: 10px;
+                border-radius: 5px;
+            }
+            .navbar-nav {
+                width: 100%;
+            }
+            .dropdown-menu {
+                width: 100%;
+                text-align: center;
+            }
+            .nav-item {
+                margin: 5px 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -43,7 +60,7 @@
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="color: white;">
                                 Menu
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-start" aria-labelledby="navbarDropdownMenuLink">
+                            <ul class="dropdown-menu w-100" aria-labelledby="navbarDropdownMenuLink">
                                 <li><a class="dropdown-item" href="{{ url_for('health_analysis') }}">Phân Tích Sức Khỏe Dựa Trên Thể Trạng</a></li>
                                 <li><a class="dropdown-item" href="{{ url_for('index') }}">Phân Tích Sức Khỏe Dựa Trên Hồ Sơ Y Tế</a></li>
                             </ul>
@@ -51,12 +68,12 @@
                     </ul>
                     <ul class="navbar-nav">
                         {% if session.username %}
-                            <li class="nav-item w-100 text-center">
-                                <a href="{{ url_for('logout') }}" class="btn btn-outline-light w-100 mb-2 mb-lg-0">Đăng Xuất</a>
+                            <li class="nav-item">
+                                <a href="{{ url_for('logout') }}" class="btn btn-outline-light w-100">Đăng Xuất</a>
                             </li>
                         {% else %}
-                            <li class="nav-item w-100 text-center">
-                                <a href="{{ url_for('login') }}" class="btn btn-outline-light w-100 mb-2 mb-lg-0">Đăng Nhập</a>
+                            <li class="nav-item">
+                                <a href="{{ url_for('login') }}" class="btn btn-outline-light w-100">Đăng Nhập</a>
                             </li>
                         {% endif %}
                     </ul>
