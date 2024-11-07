@@ -38,7 +38,7 @@
                 width: 100%;
             }
             .dropdown-menu {
-                width: 100%;
+                min-width: 250px; /* Adjusted width to accommodate longer text */
                 text-align: center;
                 position: static !important;
                 transform: none !important;
@@ -69,7 +69,7 @@
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="color: white;">
                                 Menu
                             </a>
-                            <ul class="dropdown-menu w-100" aria-labelledby="navbarDropdownMenuLink">
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
                                 <li><a class="dropdown-item" href="{{ url_for('health_analysis') }}">Phân Tích Sức Khỏe Dựa Trên Thể Trạng</a></li>
                                 <li><a class="dropdown-item" href="{{ url_for('index') }}">Phân Tích Sức Khỏe Dựa Trên Hồ Sơ Y Tế</a></li>
                             </ul>
