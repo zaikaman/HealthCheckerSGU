@@ -1,8 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, Response
 from flask_sqlalchemy import SQLAlchemy
 import os
-from utils.ocr_processing import extract_text_from_image
-from utils.gemini_integration import analyze_text_with_gemini, analyze_text_with_image, analyze_audio_with_gemini
+from utils.gemini_integration import analyze_text_with_image, analyze_audio_with_gemini
 from werkzeug.utils import secure_filename
 from io import BytesIO
 from elevenlabs.client import ElevenLabs
@@ -93,7 +92,7 @@ def upload_file():
     if file.filename == '':
         return redirect(request.url)
     
-    if file:
+    if file and allowed_file(file.filename):
         # Ensure the 'uploads' folder exists
         if not os.path.exists(app.config['UPLOAD_FOLDER']):
             os.makedirs(app.config['UPLOAD_FOLDER'])
@@ -101,17 +100,15 @@ def upload_file():
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
         file.save(filepath)
         
-        # Xử lý OCR
-        raw_text = extract_text_from_image(filepath)
+        # Directly analyze the image with Gemini AI
+        text_prompt = "Hãy phân tích tình trạng thể chất của người trong bức ảnh này."
+        extracted_entities = analyze_text_with_image(text_prompt, filepath)
         
-        # Phân tích với Gemini AI
-        extracted_entities = analyze_text_with_gemini(raw_text).replace('\n', ' ')  # Đảm bảo hiển thị trên một dòng
-        
-        # Xóa tập tin sau khi xử lý
+        # Delete the file after processing
         os.remove(filepath)
         
-        # Hiển thị kết quả
-        return render_template('index.html', extracted_text=raw_text, extracted_entities=extracted_entities)
+        # Display the result
+        return render_template('index.html', extracted_entities=extracted_entities)
     
     return redirect(request.url)
 
