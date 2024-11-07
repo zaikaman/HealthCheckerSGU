@@ -44,7 +44,7 @@
             </div>
 
             <div class="text-center space-y-4">
-                <button class="group relative w-16 h-16 bg-white rounded-full shadow-lg hover:shadow-xl transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" onclick="toggleRecording()">
+                <button id="microphoneButton" class="group relative w-16 h-16 bg-white rounded-full shadow-lg hover:shadow-xl transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" onclick="toggleRecording()">
                     <svg class="w-8 h-8 text-blue-600 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 group-hover:scale-110 transition duration-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
                     </svg>
@@ -61,10 +61,12 @@
     
         // Function to start or stop recording
         async function toggleRecording() {
+            const microphoneButton = document.getElementById("microphoneButton");
+            const microphoneIcon = microphoneButton.querySelector("svg");
+
             if (!isRecording) {
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    // Specify the desired audio format. 'audio/webm' is more widely supported
                     mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/mp4' });
                     mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
                     mediaRecorder.onstop = async () => {
@@ -74,7 +76,7 @@
                     };
                     mediaRecorder.start();
                     isRecording = true;
-                    document.getElementById("microphoneImg").style.border = "3px solid red";
+                    microphoneIcon.classList.replace("text-blue-600", "text-red-600");
                     document.getElementById("statusMessage").innerText = "Đang ghi âm... Nhấn lại để dừng.";
                 } catch (error) {
                     console.error('Trình duyệt không có quyền truy cập microphone:', error);
@@ -83,7 +85,7 @@
             } else {
                 mediaRecorder.stop();
                 isRecording = false;
-                document.getElementById("microphoneImg").style.border = "";
+                microphoneIcon.classList.replace("text-red-600", "text-blue-600");
                 document.getElementById("statusMessage").innerText = "Đang phân tích...";
             }
         }
