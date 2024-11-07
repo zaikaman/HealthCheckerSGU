@@ -49,7 +49,36 @@
             color: #333;
         }
         .navbar {
-            padding-right: 15px;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .navbar-brand {
+            color: #007bff;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+        .navbar-brand img {
+            height: 30px;
+            margin-left: 10px;
+        }
+        .navbar-nav .nav-link {
+            color: #007bff;
+        }
+        .btn-outline-light {
+            color: #fff;
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        .btn-outline-light:hover {
+            background-color: #0056b3;
+            color: white;
+        }
+        .navbar-toggler {
+            border-color: #007bff;
+        }
+        .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%280, 123, 255, 1%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
         }
         @media (max-width: 991px) {
             .navbar-collapse {
@@ -80,11 +109,11 @@
 </head>
 <body>
     <!-- Navbar with Dropdown Menu -->
-        <nav class="navbar navbar-expand-lg" style="background-color: #005082;">
+        <nav class="navbar navbar-expand-lg">
             <div class="container-fluid">
-                <a class="navbar-brand" href="#" style="color: white; font-size: 1.5rem; font-weight: bold;">
+                <a class="navbar-brand" href="#">
                     Phân Tích Hồ Sơ Y Tế Hoặc Đơn Thuốc
-                    <img src="../static/images/logo.png" alt="Logo" style="height: 30px; margin-left: 10px;">
+                    <img src="../static/images/logo.png" alt="Logo">
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarDropdown" aria-controls="navbarDropdown" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -92,7 +121,7 @@
                 <div class="collapse navbar-collapse" id="navbarDropdown">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="color: white;">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 Menu
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
@@ -103,12 +132,12 @@
                     </ul>
                     <ul class="navbar-nav">
                         {% if session.username %}
-                            <li class="nav-item w-100 text-center">
-                                <a href="{{ url_for('logout') }}" class="btn btn-outline-light w-100">Đăng Xuất</a>
+                            <li class="nav-item">
+                                <a href="{{ url_for('logout') }}" class="btn btn-outline-light">Đăng Xuất</a>
                             </li>
                         {% else %}
-                            <li class="nav-item w-100 text-center">
-                                <a href="{{ url_for('login') }}" class="btn btn-outline-light w-100">Đăng Nhập</a>
+                            <li class="nav-item">
+                                <a href="{{ url_for('login') }}" class="btn btn-outline-light">Đăng Nhập</a>
                             </li>
                         {% endif %}
                     </ul>
