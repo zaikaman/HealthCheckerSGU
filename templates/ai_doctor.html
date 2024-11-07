@@ -109,7 +109,7 @@
     </style>
 </head>
 <body>
-    <!-- Navbar with Dropdown Menu -->
+    <!-- Navbar với Menu Dropdown -->
         <nav class="navbar navbar-expand-lg">
             <div class="container-fluid">
                 <a class="navbar-brand" href="#">
@@ -168,11 +168,12 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Biến để kiểm tra trạng thái ghi âm
         let isRecording = false;
         let mediaRecorder;
         let audioChunks = [];
     
-        // Function to start or stop recording
+        // Hàm để bắt đầu hoặc dừng ghi âm
         async function toggleRecording() {
             if (!isRecording) {
                 try {
@@ -201,7 +202,7 @@
             }
         }
 
-        // Function to send audio to the server for analysis
+        // Hàm để gửi âm thanh đến server để phân tích
         async function analyzeAudioWithGemini(audioBlob) {
             const formData = new FormData();
             formData.append("audio", audioBlob, "recording.webm"); // Use 'recording.webm' as the filename
@@ -236,7 +237,7 @@
             }
         }
 
-        // Function to simulate typing effect
+        // Hàm để tạo hiệu ứng đánh máy
         function typeText(elementId, text) {
             const element = document.getElementById(elementId);
             element.innerHTML = "";  // Clear the element before starting
@@ -253,6 +254,7 @@
             type();  // Start typing
         }
     
+        // Hàm để chuyển đổi hiển thị phương tiện
         function toggleMediaDisplay(type) {
             const mediaDisplay = document.getElementById("mediaDisplay");
 
