@@ -105,48 +105,45 @@
                 background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.75%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
             }
         }
-        .navbar-nav .nav-link {
-            color: #ffffff;
-        }
     </style>
 </head>
 <body>
     <!-- Navbar with Dropdown Menu -->
-        <nav class="navbar navbar-expand-lg">
-            <div class="container-fluid">
-                <a class="navbar-brand" href="#">
-                    Phân Tích Tài Liệu
-                    <img src="../static/images/logo.png" alt="Logo">
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNavDropdown">
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                Menu
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                                <li><a class="dropdown-item" href="{{ url_for('health_analysis') }}">Phân Tích Sức Khỏe Dựa Trên Thể Trạng</a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('ai_doctor') }}">Bác Sĩ AI</a></li>
-                            </ul>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                Phân Tích Tài Liệu
+                <img src="../static/images/logo.png" alt="Logo">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNavDropdown">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Menu
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                            <li><a class="dropdown-item" href="{{ url_for('health_analysis') }}">Phân Tích Sức Khỏe Dựa Trên Thể Trạng</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('ai_doctor') }}">Bác Sĩ AI</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    {% if session.username %}
+                        <li class="nav-item">
+                            <a href="{{ url_for('logout') }}" class="btn btn-outline-light">Đăng Xuất</a>
                         </li>
-                    </ul>
-                    <ul class="navbar-nav">
-                        {% if session.username %}
-                            <li class="nav-item">
-                                <a href="{{ url_for('logout') }}" class="btn btn-outline-light">Đăng Xuất</a>
-                            </li>
-                        {% else %}
-                            <li class="nav-item">
-                                <a href="{{ url_for('login') }}" class="btn btn-outline-light">Đăng Nhập</a>
-                            </li>
-                        {% endif %}
-                    </ul>
-                </div>
+                    {% else %}
+                        <li class="nav-item">
+                            <a href="{{ url_for('login') }}" class="btn btn-outline-light">Đăng Nhập</a>
+                        </li>
+                    {% endif %}
+                </ul>
             </div>
-        </nav>
+        </div>
+    </nav>
     <div class="container">
         <h1>Phân Tích Hồ Sơ Y Tế Hoặc Đơn Thuốc</h1>
         <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data" class="text-center">
