@@ -99,7 +99,7 @@ def upload_file():
         file.save(filepath)
         
         # Directly analyze the image with Gemini AI
-        text_prompt = "Hãy phân tích tình trạng thể chất của người trong bức ảnh này. Xin hãy đánh giá các yếu tố như thể trạng tổng thể, chỉ số cơ thể có thể suy đoán (như vóc dáng, sức mạnh cơ bắp, mức độ linh hoạt), khả năng hoạt động thể chất, và tiềm năng thực hiện các loại hình thể dục khác nhau. Nếu có thể, hãy đưa ra những nhận xét tinh tế và động viên để giúp người này nhận thức rõ hơn về sức khỏe của mình, cùng một số lời khuyên hữu ích để phát triển lối sống lành mạnh."
+        text_prompt = "Hãy phân tích tình trạng sức khỏe của bệnh nhân dựa trên văn bản này. Nếu đây là đơn thuốc, hãy suy luận về các khả năng bệnh lý dựa trên các loại thuốc được kê và giải thích lý do có thể cho việc sử dụng từng loại thuốc. Đưa ra nhận xét về tình trạng sức khỏe của bệnh nhân cũng như các hành vi và thói quen nên hoặc không nên thực hiện để cải thiện tình trạng bệnh. Hãy cung cấp lời khuyên cụ thể và hữu ích, tập trung vào chế độ ăn uống, hoạt động thể chất và các thói quen lành mạnh:"
         extracted_entities = analyze_text_with_image(text_prompt, filepath)
         
         # Delete the file after processing
