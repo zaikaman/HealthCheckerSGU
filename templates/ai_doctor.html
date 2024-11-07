@@ -23,6 +23,27 @@
         .microphone {
             margin-top: 20px;
             cursor: pointer;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: border-color 0.3s, color 0.3s;
+        }
+        .microphone-icon {
+            width: 24px;
+            height: 24px;
+            background-image: url('data:image/svg+xml;base64,...'); /* Base64 encoded SVG for blue microphone */
+            background-size: cover;
+        }
+        .microphone.active {
+            border: 3px solid red;
+        }
+        .microphone.active .microphone-icon {
+            background-image: url('data:image/svg+xml;base64,...'); /* Base64 encoded SVG for red microphone */
         }
         .microphone img {
             width: 100px;
@@ -158,7 +179,7 @@
         </div>
     
         <div class="microphone" onclick="toggleRecording()">
-            <img id="microphoneImg" src="https://i.ibb.co/jrmcV0r/products-2-FS10-SM058-LC-2-FS10-SM058-LC-1710120244820-1200x1200-removebg-preview.png" alt="Microphone" style="width: 50px; height: auto; cursor: pointer;">
+            <div id="microphoneIcon" class="microphone-icon"></div>
         </div>
     
         <p id="statusMessage"></p>
@@ -175,7 +196,12 @@
     
         // Function to start or stop recording
         async function toggleRecording() {
-            if (!isRecording) {
+            const microphone = document.querySelector('.microphone');
+            isRecording = !isRecording;
+
+            if (isRecording) {
+                microphone.classList.add('active');
+                document.getElementById("statusMessage").innerText = "Đang ghi âm... Nhấn lại để dừng.";
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                     // Specify the desired audio format. 'audio/webm' is more widely supported
@@ -187,17 +213,15 @@
                         await analyzeAudioWithGemini(audioBlob);
                     };
                     mediaRecorder.start();
-                    isRecording = true;
-                    document.getElementById("microphoneImg").style.border = "3px solid red";
-                    document.getElementById("statusMessage").innerText = "Đang ghi âm... Nhấn lại để dừng.";
+                    document.getElementById("microphoneIcon").style.border = "3px solid red";
                 } catch (error) {
                     console.error('Trình duyệt không có quyền truy cập microphone:', error);
                     document.getElementById("statusMessage").innerText = "Lỗi: Không thể truy cập microphone.";
                 }
             } else {
                 mediaRecorder.stop();
-                isRecording = false;
-                document.getElementById("microphoneImg").style.border = "";
+                microphone.classList.remove('active');
+                document.getElementById("microphoneIcon").style.border = "";
                 document.getElementById("statusMessage").innerText = "Đang phân tích...";
             }
         }
