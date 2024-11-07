@@ -2,7 +2,5 @@ flask
 requests
 gunicorn
 flask_sqlalchemy
-flask_bcrypt
 mysqlclient
-pymysql
 elevenlabs
