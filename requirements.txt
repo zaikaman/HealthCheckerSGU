@@ -1,6 +1,4 @@
 flask
-pillow
-pytesseract
 requests
 gunicorn
 flask_sqlalchemy
