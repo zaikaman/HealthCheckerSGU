@@ -54,7 +54,7 @@
         </div>
     </main>
 
-    <audio id="audioPlayer" class="hidden"></audio>
+    <audio id="audioPlayer" controls onplay="toggleMediaDisplay('video')" onpause="toggleMediaDisplay('image')" onended="toggleMediaDisplay('image')"></audio>
 
     <script>
         let isRecording = false;
