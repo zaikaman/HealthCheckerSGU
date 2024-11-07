@@ -39,8 +39,8 @@
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div class="flex flex-col items-center justify-center space-y-8">
-            <div class="relative w-64 h-64 rounded-full overflow-hidden shadow-xl">
-                <img src="https://i.ibb.co/qnzGV3N/image.png" alt="Doctor" class="w-full h-full object-cover">
+            <div id="mediaDisplay" class="relative w-64 h-64 rounded-full overflow-hidden shadow-xl">
+                <img id="staticImage" src="https://i.ibb.co/qnzGV3N/image.png" alt="Doctor" class="w-full h-full object-cover media-content active">
             </div>
 
             <div class="text-center space-y-4">
@@ -53,13 +53,14 @@
             </div>
         </div>
     </main>
-    
+
+    <audio id="audioPlayer" class="hidden"></audio>
+
     <script>
         let isRecording = false;
         let mediaRecorder;
         let audioChunks = [];
-    
-        // Function to start or stop recording
+
         async function toggleRecording() {
             const microphoneButton = document.getElementById("microphoneButton");
             const microphoneIcon = microphoneButton.querySelector("svg");
@@ -67,10 +68,14 @@
             if (!isRecording) {
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/mp4' });
-                    mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+                    mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+                    mediaRecorder.ondataavailable = event => {
+                        console.log("Data available:", event.data);
+                        audioChunks.push(event.data);
+                    };
                     mediaRecorder.onstop = async () => {
                         const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        console.log("Audio Blob created:", audioBlob);
                         audioChunks = [];
                         await analyzeAudioWithGemini(audioBlob);
                     };
@@ -90,58 +95,53 @@
             }
         }
 
-        // Function to send audio to the server for analysis
         async function analyzeAudioWithGemini(audioBlob) {
             const formData = new FormData();
-            formData.append("audio", audioBlob, "recording.webm"); // Use 'recording.webm' as the filename
+            formData.append("audio", audioBlob, "recording.webm");
 
-            const response = await fetch("/analyze_audio", {
-                method: "POST",
-                body: formData
-            });
+            try {
+                const response = await fetch("/analyze_audio", {
+                    method: "POST",
+                    body: formData
+                });
 
-            if (response.ok) {
-                const data = await response.json();
-                console.log("Gemini response:", data);
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log("Gemini response:", data);
 
-                const cleanedResult = data.result.replace(/\*/g, "");
-                document.getElementById("statusMessage").innerText = "";
+                    const cleanedResult = data.result.replace(/\*/g, "");
+                    document.getElementById("statusMessage").innerText = "";
 
-                // Typing effect
-                typeText("analysisResult", "Phân tích hoàn tất: " + cleanedResult);
+                    // Typing effect
+                    typeText("analysisResult", "Phân tích hoàn tất: " + cleanedResult);
 
-                // Play audio if the URL is provided
-                if (data.audio_url) {
-                    const audioPlayer = document.getElementById("audioPlayer");
-                    audioPlayer.src = data.audio_url;
-                    audioPlayer.play().catch((error) => {
-                        console.log("Autoplay was prevented:", error);
-                    });
+                    // Play audio if the URL is provided
+                    if (data.audio_url) {
+                        const audioPlayer = document.getElementById("audioPlayer");
+                        audioPlayer.src = data.audio_url;
+                        audioPlayer.play().catch((error) => {
+                            console.log("Autoplay was prevented:", error);
+                        });
+
+                        // Show video during audio playback
+                        toggleMediaDisplay("video");
+
+                        // Revert to image when audio ends
+                        audioPlayer.onended = () => {
+                            toggleMediaDisplay("image");
+                        };
+                    }
+                } else {
+                    console.error("Lỗi khi gửi audio đến server:", response.statusText);
+                    document.getElementById("statusMessage").innerText = "Lỗi: Không thể phân tích âm thanh.";
+                    document.getElementById("analysisResult").innerHTML = "";
                 }
-            } else {
-                console.error("Lỗi khi gửi audio đến server:", response.statusText);
-                document.getElementById("statusMessage").innerText = "Lỗi: Không thể phân tích âm thanh.";
-                document.getElementById("analysisResult").innerHTML = "";
+            } catch (error) {
+                console.error("Fetch error:", error);
+                document.getElementById("statusMessage").innerText = "Lỗi: Không thể kết nối với server.";
             }
         }
 
-        // Function to simulate typing effect
-        function typeText(elementId, text) {
-            const element = document.getElementById(elementId);
-            element.innerHTML = "";  // Clear the element before starting
-            let index = 0;
-            
-            function type() {
-                if (index < text.length) {
-                    element.innerHTML += text.charAt(index);
-                    index++;
-                    setTimeout(type, 50);  // Delay between each letter (50ms)
-                }
-            }
-            
-            type();  // Start typing
-        }
-    
         function toggleMediaDisplay(type) {
             const mediaDisplay = document.getElementById("mediaDisplay");
 
@@ -181,6 +181,6 @@
                         class="media-content active" style="width: 100%; height: 100%; object-fit: cover;">`;
             }
         }
-    </script>    
+    </script>
 </body>
 </html>
