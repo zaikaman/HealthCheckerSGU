@@ -26,10 +26,6 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg','webp'}
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# Kiểm tra đuôi file
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
 db = SQLAlchemy(app)
 
 # Định nghĩa mô hình User
@@ -123,7 +119,7 @@ def file_analysis():
             return redirect(request.url)
             
         file = request.files['file']
-        if file and allowed_file(file.filename):
+        if file:
             try:
                 # Upload file
                 file_url = upload_to_cloudinary(file, "medical")
@@ -199,7 +195,7 @@ def health_analysis():
             return redirect(request.url)
             
         file = request.files['file']
-        if file and allowed_file(file.filename):
+        if file:
             # Upload file
             file_url = upload_to_cloudinary(file, "health")
             if not file_url:
