@@ -12,19 +12,9 @@
 <body>
     <nav class="navbar navbar-expand-lg">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{{ url_for('index') }}">
-                <img src="../static/images/logo.png" alt="Logo">
-                {% if request.endpoint == 'file_analysis' %}
-                    Phân Tích Hồ Sơ Y Tế
-                {% elif request.endpoint == 'health_analysis' %}
-                    Phân Tích Thể Trạng
-                {% elif request.endpoint == 'ai_doctor' %}
-                    Bác Sĩ AI
-                {% elif request.endpoint == 'history' %}
-                    Lịch Sử Phân Tích
-                {% else %}
-                    Health Checker
-                {% endif %}
+            <a class="navbar-brand" href="#">
+                <img src="../static/images/logo.png" alt="Logo" onclick="window.location.href='{{ url_for('index') }}'">
+                Bác Sĩ AI
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown">
                 <span class="navbar-toggler-icon"></span>

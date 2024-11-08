@@ -91,6 +91,7 @@ body {
 .navbar-brand img {
     height: 30px;
     margin-right: 10px;
+    cursor: pointer;
 }
 
 .navbar-nav .nav-link {
