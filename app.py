@@ -5,6 +5,9 @@ from utils.gemini_integration import analyze_text_with_image, analyze_audio_with
 from werkzeug.utils import secure_filename
 from elevenlabs.client import ElevenLabs
 from datetime import datetime, timedelta
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
 
 app = Flask(__name__)
 
@@ -64,6 +67,13 @@ class AiDoctor(db.Model):
 with app.app_context():
     db.create_all()
 
+# Thêm cấu hình Cloudinary (thay thế các giá trị bằng thông tin từ dashboard của bạn)
+cloudinary.config(
+    cloud_name = "ddrfu9ftt",
+    api_key = "419138417289347",
+    api_secret = "cm9Rws-Nh44hnuzHER4LBxK2gCY"
+)
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -72,46 +82,53 @@ def index():
 def file_analysis():
     if request.method == 'POST':
         if 'file' not in request.files:
-            flash('No file part')
-            return redirect(request.url)
-
-        if 'username' not in session:
-            flash('Vui lòng đăng nhập để sử dụng tính năng này')
-            return redirect(url_for('login'))
-
-        file = request.files['file']
-        if file.filename == '':
-            flash('No selected file')
+            flash('Không có file nào được chọn')
             return redirect(request.url)
         
-        if file and allowed_file(file.filename):
-            # Tạo tên file với timestamp
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            filename = f"{secure_filename(file.filename.rsplit('.', 1)[0])}_{timestamp}.{file.filename.rsplit('.', 1)[1]}"
-            
-            if not os.path.exists(app.config['UPLOAD_FOLDER']):
-                os.makedirs(app.config['UPLOAD_FOLDER'])
+        file = request.files['file']
+        if file.filename == '':
+            flash('Không có file nào được chọn')
+            return redirect(request.url)
 
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(filepath)
-            
-            # Phân tích với Gemini AI
-            text_prompt = "Hãy phân tích chi tiết hồ sơ y tế hoặc đơn thuốc này và đưa ra những thông tin quan trọng."
-            extracted_entities = analyze_text_with_image(text_prompt, filepath)
-            
-            # Lưu vào database với tên file mới
-            user = User.query.filter_by(username=session['username']).first()
-            analysis = FileAnalysis(
-                email=user.email,
-                input=filename,  # Lưu tên file với timestamp
-                output=extracted_entities
-            )
-            db.session.add(analysis)
-            db.session.commit()
-            
-            return render_template('file_analysis.html', extracted_entities=extracted_entities)
-    
-    return render_template('file_analysis.html')
+        if file and allowed_file(file.filename):
+            try:
+                # Lưu file vào uploads trước
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                filename = f"{secure_filename(file.filename.rsplit('.', 1)[0])}_{timestamp}.{file.filename.rsplit('.', 1)[1]}"
+                filepath = os.path.join('uploads', filename)
+                file.save(filepath)
+
+                # Upload lên Cloudinary từ file local
+                upload_result = cloudinary.uploader.upload(filepath,
+                    public_id=f"file_analysis/{filename}",
+                    folder="health_checker")
+                file_url = upload_result['secure_url']
+
+                # Phân tích với Gemini AI (sử dụng file local)
+                text_prompt = "Hãy phân tích chi tiết hồ sơ y tế hoặc đơn thuốc này và đưa ra những thông tin quan trọng."
+                extracted_entities = analyze_text_with_image(text_prompt, filepath)
+
+                # Lưu vào database với Cloudinary URL
+                user = User.query.filter_by(username=session['username']).first()
+                analysis = FileAnalysis(
+                    email=user.email,
+                    input=file_url,
+                    output=extracted_entities
+                )
+                db.session.add(analysis)
+                db.session.commit()
+
+                # Xóa file local sau khi đã upload xong
+                os.remove(filepath)
+                
+                return render_template('file_analysis.html', extracted_entities=extracted_entities)
+
+            except Exception as e:
+                print(f"Error: {str(e)}")
+                if os.path.exists(filepath):
+                    os.remove(filepath)
+                flash('Có lỗi xảy ra khi xử lý file')
+                return redirect(request.url)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -155,41 +172,53 @@ def signup():
 def health_analysis():
     if request.method == 'POST':
         if 'file' not in request.files:
-            flash('No file part')
+            flash('Không có file nào được chọn')
             return redirect(request.url)
-
-        if 'username' not in session:
-            flash('Vui lòng đăng nhập để sử dụng tính năng này')
-            return redirect(url_for('login'))
-
+        
         file = request.files['file']
         if file.filename == '':
-            flash('No selected file')
+            flash('Không có file nào được chọn')
             return redirect(request.url)
 
         if file and allowed_file(file.filename):
-            # Tạo tên file với timestamp
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            filename = f"{secure_filename(file.filename.rsplit('.', 1)[0])}_{timestamp}.{file.filename.rsplit('.', 1)[1]}"
-            
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(filepath)
+            try:
+                # Lưu file vào uploads trước
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                filename = f"{secure_filename(file.filename.rsplit('.', 1)[0])}_{timestamp}.{file.filename.rsplit('.', 1)[1]}"
+                filepath = os.path.join('uploads', filename)
+                file.save(filepath)
 
-            text_prompt = "Hãy phân tích tình trạng thể chất của người trong bức ảnh này một cách khách quan và chuyên nghiệp. Hãy đưa ra nhận xét về các yếu tố như: tư thế, dáng người, cân nặng ước tính, và các dấu hiệu thể chất có thể quan sát được. Đưa ra những gợi ý và lời khuyên hữu ích để cải thiện sức khỏe nếu cần thiết. Hãy giữ giọng điệu tích cực và mang tính xây dựng."
-            result = analyze_text_with_image(text_prompt, filepath)
+                # Upload lên Cloudinary từ file local
+                upload_result = cloudinary.uploader.upload(filepath,
+                    public_id=f"health_analysis/{filename}",
+                    folder="health_checker")
+                file_url = upload_result['secure_url']
 
-            user = User.query.filter_by(username=session['username']).first()
-            analysis = HealthAnalysis(
-                email=user.email,
-                input=filename,
-                output=result
-            )
-            db.session.add(analysis)
-            db.session.commit()
+                # Phân tích với AI (sử dụng file local)
+                text_prompt = "Hãy phân tích tình trạng thể chất của người trong bức ảnh này..."
+                result = analyze_text_with_image(text_prompt, filepath)
 
-            return render_template('health_analysis.html', health_analysis_result=result)
+                # Lưu vào database với Cloudinary URL
+                user = User.query.filter_by(username=session['username']).first()
+                analysis = HealthAnalysis(
+                    email=user.email,
+                    input=file_url,
+                    output=result
+                )
+                db.session.add(analysis)
+                db.session.commit()
 
-    return render_template('health_analysis.html')
+                # Xóa file local sau khi đã upload xong
+                os.remove(filepath)
+
+                return render_template('health_analysis.html', health_analysis_result=result)
+
+            except Exception as e:
+                print(f"Error: {str(e)}")
+                if os.path.exists(filepath):
+                    os.remove(filepath)
+                flash('Có lỗi xảy ra khi xử lý file')
+                return redirect(request.url)
 
 @app.route('/ai_doctor')
 def ai_doctor():
@@ -210,28 +239,50 @@ def analyze_audio():
         return jsonify({"result": "Lỗi: Không tìm thấy tệp âm thanh."}), 400
 
     audio_file = request.files['audio']
-    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    filename = f"audio_{timestamp}.webm"
-    
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    audio_file.save(filepath)
+    try:
+        # Lưu file audio vào uploads trước
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        filename = f"audio_{timestamp}.webm"
+        filepath = os.path.join('uploads', filename)
+        audio_file.save(filepath)
 
-    analysis_result = analyze_audio_with_gemini(filepath)
+        # Upload lên Cloudinary từ file local
+        upload_result = cloudinary.uploader.upload(filepath,
+            resource_type="video",
+            public_id=f"ai_doctor/{filename}",
+            folder="health_checker")
+        audio_url = upload_result['secure_url']
 
-    if analysis_result:
-        user = User.query.filter_by(username=session['username']).first()
-        analysis = AiDoctor(
-            email=user.email,
-            input=filename,  # Lưu tên file với timestamp
-            output=analysis_result
-        )
-        db.session.add(analysis)
-        db.session.commit()
+        # Phân tích audio (sử dụng file local)
+        analysis_result = analyze_audio_with_gemini(filepath)
 
-        audio_stream_url = url_for('stream_audio', result=analysis_result)
-        return jsonify({"result": analysis_result, "audio_url": audio_stream_url})
-    else:
-        return jsonify({"result": "Lỗi: Không thể tạo tệp âm thanh."}), 500
+        if analysis_result:
+            user = User.query.filter_by(username=session['username']).first()
+            analysis = AiDoctor(
+                email=user.email,
+                input=audio_url,
+                output=analysis_result
+            )
+            db.session.add(analysis)
+            db.session.commit()
+
+            # Xóa file local sau khi đã upload xong
+            os.remove(filepath)
+
+            return jsonify({
+                "result": analysis_result,
+                "audio_url": audio_url
+            })
+        else:
+            if os.path.exists(filepath):
+                os.remove(filepath)
+            return jsonify({"result": "Lỗi: Không thể phân tích âm thanh."}), 500
+
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        if os.path.exists(filepath):
+            os.remove(filepath)
+        return jsonify({"result": "Lỗi: Không thể xử lý tệp âm thanh."}), 500
 
 @app.route('/stream_audio')
 def stream_audio():

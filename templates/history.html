@@ -224,7 +224,7 @@
                             <i class="fas fa-file-medical"></i> Phân tích hồ sơ y tế
                         </div>
                         <div class="history-file">
-                            <img src="{{ url_for('uploaded_file', filename=analysis.input) }}" 
+                            <img src="{{ analysis.input }}" 
                                  alt="Medical File" class="img-fluid mb-3" style="max-width: 300px;">
                         </div>
                         <div class="history-content">
@@ -253,7 +253,7 @@
                             <i class="fas fa-heartbeat"></i> Phân tích thể trạng
                         </div>
                         <div class="history-file">
-                            <img src="{{ url_for('uploaded_file', filename=analysis.input) }}" 
+                            <img src="{{ analysis.input }}" 
                                  alt="Health Analysis" class="img-fluid mb-3" style="max-width: 300px;">
                         </div>
                         <div class="history-content">
@@ -280,7 +280,7 @@
                     <div class="history-type">Tư vấn bác sĩ AI</div>
                     <div class="history-file">
                         <audio controls>
-                            <source src="{{ url_for('uploaded_file', filename=analysis.input) }}" type="audio/webm">
+                            <source src="{{ analysis.input }}" type="audio/webm">
                             Your browser does not support the audio element.
                         </audio>
                     </div>
