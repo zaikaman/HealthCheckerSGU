@@ -4,7 +4,7 @@ import os
 from utils.gemini_integration import analyze_text_with_image, analyze_audio_with_gemini
 from werkzeug.utils import secure_filename
 from elevenlabs.client import ElevenLabs
-from datetime import datetime
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 
@@ -263,7 +263,9 @@ def history():
     return render_template('history.html', 
                          file_analyses=file_analyses,
                          health_analyses=health_analyses,
-                         ai_doctor_analyses=ai_doctor_analyses)
+                         ai_doctor_analyses=ai_doctor_analyses,
+                         timedelta=timedelta,
+                         session=session)
 
 if __name__ == '__main__':
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
