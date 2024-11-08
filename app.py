@@ -65,25 +65,24 @@ class AiDoctor(db.Model):
 with app.app_context():
     db.create_all()
 
-# Cấu hình Cloudinary
-config(
-    cloud_name="ddrfu9ftt",
-    api_key="419138417289347", 
-    api_secret="419138417289347",
-    secure=True
+# Cấu hình Cloudinary - đặt ngay sau khi khởi tạo app
+config( 
+    cloud_name = "ddrfu9ftt",
+    api_key = "419138417289347",
+    api_secret = "419138417289347"
 )
 
-# Hàm upload file lên Cloudinary
+# Hàm upload chung cho tất cả các route
 def upload_to_cloudinary(file, folder):
     try:
+        # Đơn giản hóa các tham số upload
         result = uploader.upload(
             file,
-            folder=f"healthchecker/{folder}",
-            resource_type="auto"
+            folder=f"healthchecker/{folder}"
         )
         return result['secure_url']
     except Exception as e:
-        print(f"Upload error: {str(e)}")
+        print(f"Cloudinary upload error: {str(e)}")
         return None
 
 @app.route('/')
@@ -98,38 +97,27 @@ def file_analysis():
             
         file = request.files['file']
         if file and allowed_file(file.filename):
-            try:
-                # Upload to Cloudinary với các tham số bổ sung
-                upload_result = uploader.upload(
-                    file,
-                    folder="healthchecker/medical",
-                    resource_type="auto",
-                    unique_filename=True,
-                    overwrite=True
-                )
-                
-                file_url = upload_result.get('secure_url')
-                
-                # Analyze with Gemini
-                text_prompt = "Analyze this medical record or prescription and extract key information in Vietnamese"
-                extracted_entities = analyze_text_with_image(text_prompt, file)
-                
-                # Save to database
-                if 'username' in session:
-                    user = User.query.filter_by(username=session['username']).first()
-                    analysis = FileAnalysis(
-                        email=user.email,
-                        input=file_url,
-                        output=extracted_entities
-                    )
-                    db.session.add(analysis)
-                    db.session.commit()
-                
-                return render_template('file_analysis.html', extracted_entities=extracted_entities)
-                
-            except Exception as e:
-                print(f"Cloudinary Error: {str(e)}")
+            # Upload file
+            file_url = upload_to_cloudinary(file, "medical")
+            if not file_url:
                 return redirect(request.url)
+                
+            # Phân tích với Gemini
+            text_prompt = "Analyze this medical record or prescription and extract key information in Vietnamese"
+            extracted_entities = analyze_text_with_image(text_prompt, file)
+            
+            # Lưu vào database
+            if 'username' in session:
+                user = User.query.filter_by(username=session['username']).first()
+                analysis = FileAnalysis(
+                    email=user.email,
+                    input=file_url,
+                    output=extracted_entities
+                )
+                db.session.add(analysis)
+                db.session.commit()
+            
+            return render_template('file_analysis.html', extracted_entities=extracted_entities)
                 
     return render_template('file_analysis.html')
 
@@ -179,36 +167,27 @@ def health_analysis():
             
         file = request.files['file']
         if file and allowed_file(file.filename):
-            try:
-                upload_result = uploader.upload(
-                    file,
-                    folder="healthchecker/health",
-                    resource_type="auto",
-                    unique_filename=True,
-                    overwrite=True
-                )
-                file_url = upload_result.get('secure_url')
-                
-                # Analyze with Gemini
-                text_prompt = "Analyze this person's physical condition and health status in Vietnamese"
-                analysis_result = analyze_text_with_image(text_prompt, file)
-                
-                # Save to database
-                if 'username' in session:
-                    user = User.query.filter_by(username=session['username']).first()
-                    analysis = HealthAnalysis(
-                        email=user.email,
-                        input=file_url,
-                        output=analysis_result
-                    )
-                    db.session.add(analysis)
-                    db.session.commit()
-                
-                return render_template('health_analysis.html', health_analysis_result=analysis_result)
-                
-            except Exception as e:
-                print(f"Error: {str(e)}")
+            # Upload file
+            file_url = upload_to_cloudinary(file, "health")
+            if not file_url:
                 return redirect(request.url)
+                
+            # Phân tích với Gemini
+            text_prompt = "Analyze this person's physical condition and health status in Vietnamese"
+            analysis_result = analyze_text_with_image(text_prompt, file)
+            
+            # Lưu vào database
+            if 'username' in session:
+                user = User.query.filter_by(username=session['username']).first()
+                analysis = HealthAnalysis(
+                    email=user.email,
+                    input=file_url,
+                    output=analysis_result
+                )
+                db.session.add(analysis)
+                db.session.commit()
+            
+            return render_template('health_analysis.html', health_analysis_result=analysis_result)
                 
     return render_template('health_analysis.html')
 
@@ -232,38 +211,29 @@ def analyze_audio():
         
     audio_file = request.files['audio']
     
-    try:
-        upload_result = uploader.upload(
-            audio_file,
-            folder="healthchecker/audio",
-            resource_type="video",
-            unique_filename=True,
-            overwrite=True
+    # Upload audio file
+    audio_url = upload_to_cloudinary(audio_file, "audio")
+    if not audio_url:
+        return jsonify({"error": "Upload failed"}), 500
+        
+    # Phân tích với Gemini
+    analysis_result = analyze_audio_with_gemini(audio_file)
+    
+    # Lưu vào database
+    if 'username' in session:
+        user = User.query.filter_by(username=session['username']).first()
+        analysis = AiDoctor(
+            email=user.email,
+            input=audio_url,
+            output=analysis_result
         )
-        audio_url = upload_result.get('secure_url')
-        
-        # Analyze with Gemini
-        analysis_result = analyze_audio_with_gemini(audio_file)
-        
-        # Save to database
-        if 'username' in session:
-            user = User.query.filter_by(username=session['username']).first()
-            analysis = AiDoctor(
-                email=user.email,
-                input=audio_url,
-                output=analysis_result
-            )
-            db.session.add(analysis)
-            db.session.commit()
-        
-        return jsonify({
-            "result": analysis_result,
-            "audio_url": audio_url
-        })
-        
-    except Exception as e:
-        print(f"Error: {str(e)}")
-        return jsonify({"error": "Upload or analysis failed"}), 500
+        db.session.add(analysis)
+        db.session.commit()
+    
+    return jsonify({
+        "result": analysis_result,
+        "audio_url": audio_url
+    })
 
 @app.route('/stream_audio')
 def stream_audio():
