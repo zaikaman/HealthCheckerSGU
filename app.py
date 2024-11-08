@@ -132,21 +132,63 @@ def generate_confirmation_token(email):
 
 def send_confirmation_email(to_email, token):
     try:
-        # Tạo URL xác nhận
         confirm_url = url_for('confirm_email', token=token, _external=True)
         
-        # Tạo message
         msg = Message('Xác nhận tài khoản',
                      sender=app.config['MAIL_USERNAME'],
                      recipients=[to_email])
         
-        # Nội dung email
-        msg.body = f'''Để xác nhận tài khoản của bạn, vui lòng click vào link sau:
-{confirm_url}
+        # HTML template với CSS inline
+        msg.html = f'''
+        <div style="background-color: #f6f6f6; padding: 20px;">
+            <div style="max-width: 600px; margin: 0 auto; background-color: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h1 style="color: #1a73e8; margin: 0; font-family: Arial, sans-serif;">Xác nhận tài khoản</h1>
+                </div>
+                
+                <div style="color: #444; font-family: Arial, sans-serif; font-size: 16px; line-height: 1.6;">
+                    <p>Xin chào,</p>
+                    <p>Cảm ơn bạn đã đăng ký tài khoản. Để hoàn tất quá trình đăng ký, vui lòng click vào nút bên dưới:</p>
+                </div>
+                
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="{confirm_url}" 
+                       style="background-color: #1a73e8; 
+                              color: white; 
+                              padding: 12px 30px; 
+                              text-decoration: none; 
+                              border-radius: 5px; 
+                              font-family: Arial, sans-serif;
+                              font-weight: bold;
+                              display: inline-block;">
+                        Xác nhận tài khoản
+                    </a>
+                </div>
+                
+                <div style="color: #666; font-family: Arial, sans-serif; font-size: 14px; line-height: 1.5;">
+                    <p>Hoặc copy và paste đường link sau vào trình duyệt của bạn:</p>
+                    <p style="color: #1a73e8; word-break: break-all;">{confirm_url}</p>
+                    <p>Link này sẽ hết hạn sau 24 giờ.</p>
+                </div>
+                
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-family: Arial, sans-serif; font-size: 12px; text-align: center;">
+                    <p>Email này được gửi tự động, vui lòng không trả lời.</p>
+                    <p>© 2024 Health Checker. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+        '''
+        
+        # Plain text version cho các email client không hỗ trợ HTML
+        msg.body = f'''
+        Xác nhận tài khoản
 
-Link này sẽ hết hạn sau 24 giờ.
-'''
-        # Gửi email
+        Để xác nhận tài khoản của bạn, vui lòng truy cập link sau:
+        {confirm_url}
+
+        Link này sẽ hết hạn sau 24 giờ.
+        '''
+        
         mail.send(msg)
         logger.info(f"Email sent successfully to {to_email}")
         return True
