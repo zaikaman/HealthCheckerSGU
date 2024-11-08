@@ -303,7 +303,7 @@ def confirm_email(token):
         if user:
             user.verified = True
             db.session.commit()
-            flash('Tài khoản của bn đã được xác nhận! Bạn có thể đăng nhập ngay bây giờ.', 'success')
+            flash('Tài khoản của bạn đã được xác nhận! Bạn có thể đăng nhập ngay bây giờ.', 'success')
         else:
             flash('Link xác nhận không hợp lệ.', 'danger')
             
