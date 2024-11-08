@@ -1,7 +1,12 @@
 /* Global Styles */
 body {
-    background-color: #f5f8fa;
+    background: url('../images/background.jpg') no-repeat center center fixed;
+    background-size: cover;
     font-family: 'Roboto', sans-serif;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
 }
 
 /* Container Styles */
@@ -9,6 +14,9 @@ body {
     max-width: 800px;
     margin: 30px auto;
     padding: 20px;
+    background-color: white;
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
 /* Header Styles */
@@ -20,44 +28,46 @@ body {
 
 /* Tab Navigation Styles */
 .nav-tabs {
-    border-bottom: 2px solid #dee2e6;
+    border: none;
     margin-bottom: 25px;
     justify-content: center;
+    gap: 10px;
 }
 
 .nav-tabs .nav-link {
-    color: #6c757d;
     border: none;
-    padding: 10px 20px;
-    margin: 0 10px;
+    padding: 12px 24px;
+    border-radius: 30px;
     font-weight: 500;
+    color: #6c757d;
+    transition: all 0.3s ease;
 }
 
 .nav-tabs .nav-link:hover {
-    border: none;
+    background-color: rgba(0, 123, 255, 0.1);
     color: #007bff;
 }
 
 .nav-tabs .nav-link.active {
-    color: #007bff;
-    background: none;
-    border: none;
-    border-bottom: 2px solid #007bff;
+    background-color: #007bff;
+    color: white;
 }
 
 /* History Card Styles */
 .history-card {
     background-color: white;
     border-radius: 15px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
-    padding: 20px;
-    transition: transform 0.2s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    margin-bottom: 25px;
+    padding: 25px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
 }
 
-.history-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+.history-card.visible {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .history-date {
@@ -174,4 +184,72 @@ body {
 audio {
     width: 100%;
     margin: 10px 0;
+}
+
+/* Image preview modal */
+.image-preview-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.image-preview-modal.visible {
+    opacity: 1;
+}
+
+.modal-content {
+    position: relative;
+    max-width: 90%;
+    max-height: 90vh;
+}
+
+.modal-content img {
+    max-width: 100%;
+    max-height: 90vh;
+    object-fit: contain;
+    border-radius: 8px;
+}
+
+/* Custom audio player */
+.audio-player {
+    background-color: #f8f9fa;
+    border-radius: 30px;
+    padding: 10px;
+    margin: 15px 0;
+}
+
+.audio-player audio {
+    width: 100%;
+}
+
+/* Scroll to top button */
+.scroll-to-top {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #007bff;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 99;
+}
+
+.scroll-to-top.show {
+    opacity: 1;
 }

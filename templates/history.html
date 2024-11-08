@@ -55,108 +55,113 @@
         </div>
     </nav>
 
-    <div class="container">
-        <div class="history-header">
-            <h2><i class="fas fa-history"></i> Lịch Sử Phân Tích</h2>
-        </div>
-
-        <ul class="nav nav-tabs" id="historyTabs" role="tablist">
-            <li class="nav-item">
-                <a class="nav-link active" id="file-tab" data-bs-toggle="tab" href="#file" role="tab">
-                    <i class="fas fa-file-medical"></i> Hồ Sơ Y Tế
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" id="health-tab" data-bs-toggle="tab" href="#health" role="tab">
-                    <i class="fas fa-heartbeat"></i> Thể Trạng
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" id="doctor-tab" data-bs-toggle="tab" href="#doctor" role="tab">
-                    <i class="fas fa-user-md"></i> Bác Sĩ AI
-                </a>
-            </li>
-        </ul>
-
-        <div class="tab-content" id="historyTabContent">
-            <!-- Hồ Sơ Y Tế -->
-            <div class="tab-pane fade show active" id="file" role="tabpanel">
-                {% if file_analyses %}
-                    {% for analysis in file_analyses %}
-                    <div class="history-card">
-                        <div class="history-date">
-                            <i class="far fa-clock"></i> {{ (analysis.created_at + timedelta(hours=7)).strftime('%d/%m/%Y %H:%M:%S') }}
-                        </div>
-                        <div class="history-type">
-                            <i class="fas fa-file-medical"></i> Phân tích hồ sơ y tế
-                        </div>
-                        <div class="history-file">
-                            <img src="{{ analysis.input }}" 
-                                 alt="Medical File" class="img-fluid mb-3" style="max-width: 300px;">
-                        </div>
-                        <div class="history-content">
-                            <div class="result-container">
-                                {{ analysis.output|safe }}
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="no-records">
-                        <i class="fas fa-info-circle"></i> Chưa có lịch sử phân tích hồ sơ y tế
-                    </div>
-                {% endif %}
+    <!-- Content wrapper -->
+    <div class="content-wrapper">
+        <div class="container">
+            <div class="history-header">
+                <h2><i class="fas fa-history"></i> Lịch Sử Phân Tích</h2>
             </div>
 
-            <!-- Thể Trạng -->
-            <div class="tab-pane fade" id="health" role="tabpanel">
-                {% if health_analyses %}
-                    {% for analysis in health_analyses %}
-                    <div class="history-card">
-                        <div class="history-date">
-                            <i class="far fa-clock"></i> {{ (analysis.created_at + timedelta(hours=7)).strftime('%d/%m/%Y %H:%M:%S') }}
-                        </div>
-                        <div class="history-type">
-                            <i class="fas fa-heartbeat"></i> Phân tích thể trạng
-                        </div>
-                        <div class="history-file">
-                            <img src="{{ analysis.input }}" 
-                                 alt="Health Analysis" class="img-fluid mb-3" style="max-width: 300px;">
-                        </div>
-                        <div class="history-content">
-                            <div class="result-container">
-                                {{ analysis.output|safe }}
+            <!-- Enhanced tab navigation -->
+            <ul class="nav nav-tabs" id="historyTabs" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="file-tab" data-bs-toggle="tab" href="#file" role="tab">
+                        <i class="fas fa-file-medical"></i> Hồ Sơ Y Tế
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="health-tab" data-bs-toggle="tab" href="#health" role="tab">
+                        <i class="fas fa-heartbeat"></i> Thể Trạng
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="doctor-tab" data-bs-toggle="tab" href="#doctor" role="tab">
+                        <i class="fas fa-user-md"></i> Bác Sĩ AI
+                    </a>
+                </li>
+            </ul>
+
+            <!-- Tab content with animations -->
+            <div class="tab-content" id="historyTabContent">
+                <!-- Hồ Sơ Y Tế -->
+                <div class="tab-pane fade show active" id="file" role="tabpanel">
+                    {% if file_analyses %}
+                        {% for analysis in file_analyses %}
+                        <div class="history-card">
+                            <div class="history-date">
+                                <i class="far fa-clock"></i> {{ (analysis.created_at + timedelta(hours=7)).strftime('%d/%m/%Y %H:%M:%S') }}
+                            </div>
+                            <div class="history-type">
+                                <i class="fas fa-file-medical"></i> Phân tích hồ sơ y tế
+                            </div>
+                            <div class="history-file">
+                                <img src="{{ analysis.input }}" 
+                                     alt="Medical File" class="img-fluid mb-3" style="max-width: 300px;">
+                            </div>
+                            <div class="history-content">
+                                <div class="result-container">
+                                    {{ analysis.output|safe }}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="no-records">
-                        <i class="fas fa-info-circle"></i> Chưa có lịch sử phân tích thể trạng
-                    </div>
-                {% endif %}
-            </div>
-
-            <!-- Bác Sĩ AI -->
-            <div class="tab-pane fade" id="doctor" role="tabpanel">
-                {% for analysis in ai_doctor_analyses %}
-                <div class="history-card">
-                    <div class="history-date">
-                        {{ (analysis.created_at + timedelta(hours=7)).strftime('%d/%m/%Y %H:%M:%S') }}
-                    </div>
-                    <div class="history-type">Tư vấn bác sĩ AI</div>
-                    <div class="history-file">
-                        <audio controls>
-                            <source src="{{ analysis.input }}" type="audio/mpeg">
-                            <source src="{{ analysis.input }}" type="audio/webm">
-                            Trình duyệt của bạn không hỗ trợ phát audio.
-                        </audio>
-                    </div>
-                    <div class="history-content">
-                        <pre>{{ analysis.output }}</pre>
-                    </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="no-records">
+                            <i class="fas fa-info-circle"></i> Chưa có lịch sử phân tích hồ sơ y tế
+                        </div>
+                    {% endif %}
                 </div>
-                {% endfor %}
+
+                <!-- Thể Trạng -->
+                <div class="tab-pane fade" id="health" role="tabpanel">
+                    {% if health_analyses %}
+                        {% for analysis in health_analyses %}
+                        <div class="history-card">
+                            <div class="history-date">
+                                <i class="far fa-clock"></i> {{ (analysis.created_at + timedelta(hours=7)).strftime('%d/%m/%Y %H:%M:%S') }}
+                            </div>
+                            <div class="history-type">
+                                <i class="fas fa-heartbeat"></i> Phân tích thể trạng
+                            </div>
+                            <div class="history-file">
+                                <img src="{{ analysis.input }}" 
+                                     alt="Health Analysis" class="img-fluid mb-3" style="max-width: 300px;">
+                            </div>
+                            <div class="history-content">
+                                <div class="result-container">
+                                    {{ analysis.output|safe }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="no-records">
+                            <i class="fas fa-info-circle"></i> Chưa có lịch sử phân tích thể trạng
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Bác Sĩ AI -->
+                <div class="tab-pane fade" id="doctor" role="tabpanel">
+                    {% for analysis in ai_doctor_analyses %}
+                    <div class="history-card">
+                        <div class="history-date">
+                            {{ (analysis.created_at + timedelta(hours=7)).strftime('%d/%m/%Y %H:%M:%S') }}
+                        </div>
+                        <div class="history-type">Tư vấn bác sĩ AI</div>
+                        <div class="history-file">
+                            <audio controls>
+                                <source src="{{ analysis.input }}" type="audio/mpeg">
+                                <source src="{{ analysis.input }}" type="audio/webm">
+                                Trình duyệt của bạn không hỗ trợ phát audio.
+                            </audio>
+                        </div>
+                        <div class="history-content">
+                            <pre>{{ analysis.output }}</pre>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
         </div>
     </div>

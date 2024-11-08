@@ -1,131 +1,135 @@
-// Document ready handler
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize tab functionality
+    // Initialize all components
     initializeTabs();
-    
-    // Add animation to history cards
     initializeHistoryCards();
-    
-    // Initialize audio players
     initializeAudioPlayers();
-    
-    // Handle image preview
     initializeImagePreviews();
+    initializeScrollToTop();
+    
+    // Add intersection observer for animations
+    initializeScrollAnimations();
 });
 
-// Initialize tabs with animation
+// Initialize tabs with smooth transitions
 function initializeTabs() {
     const tabLinks = document.querySelectorAll('.nav-link');
+    const tabContents = document.querySelectorAll('.tab-pane');
     
     tabLinks.forEach(tab => {
         tab.addEventListener('click', function(e) {
             e.preventDefault();
             
-            // Remove active class from all tabs
+            // Update active tab
             tabLinks.forEach(t => t.classList.remove('active'));
-            
-            // Add active class to clicked tab
             this.classList.add('active');
             
-            // Show corresponding content with animation
+            // Show content with animation
             const targetId = this.getAttribute('href');
             const targetContent = document.querySelector(targetId);
             
-            document.querySelectorAll('.tab-pane').forEach(pane => {
-                pane.classList.remove('show', 'active');
-                pane.style.opacity = '0';
+            tabContents.forEach(content => {
+                content.style.opacity = '0';
+                setTimeout(() => {
+                    content.classList.remove('show', 'active');
+                }, 300);
             });
             
             setTimeout(() => {
                 targetContent.classList.add('show', 'active');
                 targetContent.style.opacity = '1';
-            }, 150);
+            }, 300);
         });
     });
 }
 
-// Initialize history cards with animation
-function initializeHistoryCards() {
-    const cards = document.querySelectorAll('.history-card');
+// Initialize scroll animations
+function initializeScrollAnimations() {
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, {
+        threshold: 0.1
+    });
     
-    cards.forEach((card, index) => {
-        // Add animation delay based on card position
-        setTimeout(() => {
-            card.style.opacity = '1';
-            card.style.transform = 'translateY(0)';
-        }, index * 100);
-        
-        // Add hover effect
-        card.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-5px)';
-            this.style.boxShadow = '0 8px 16px rgba(0,0,0,0.1)';
-        });
-        
-        card.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0)';
-            this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
-        });
+    document.querySelectorAll('.history-card').forEach(card => {
+        observer.observe(card);
     });
 }
 
-// Initialize audio players
-function initializeAudioPlayers() {
-    const audioPlayers = document.querySelectorAll('audio');
-    
-    audioPlayers.forEach(player => {
-        // Add custom styling and controls
-        player.addEventListener('play', function() {
-            this.closest('.history-card').classList.add('playing');
-        });
-        
-        player.addEventListener('pause', function() {
-            this.closest('.history-card').classList.remove('playing');
-        });
-        
-        player.addEventListener('ended', function() {
-            this.closest('.history-card').classList.remove('playing');
-        });
-    });
-}
-
-// Initialize image previews
+// Enhanced image preview
 function initializeImagePreviews() {
-    const images = document.querySelectorAll('.history-file img');
-    
-    images.forEach(img => {
+    document.querySelectorAll('.history-file img').forEach(img => {
         img.addEventListener('click', function() {
-            openImagePreview(this.src);
+            const modal = createImageModal(this.src);
+            document.body.appendChild(modal);
+            
+            setTimeout(() => modal.classList.add('visible'), 50);
+            
+            modal.addEventListener('click', e => {
+                if (e.target === modal) {
+                    modal.classList.remove('visible');
+                    setTimeout(() => modal.remove(), 300);
+                }
+            });
         });
     });
 }
 
-// Open image preview modal
-function openImagePreview(src) {
+// Create image modal
+function createImageModal(src) {
     const modal = document.createElement('div');
     modal.className = 'image-preview-modal';
     modal.innerHTML = `
         <div class="modal-content">
-            <span class="close-button">&times;</span>
             <img src="${src}" alt="Preview">
+            <button class="close-button">&times;</button>
         </div>
     `;
-    
-    document.body.appendChild(modal);
-    
-    // Close modal on click outside or close button
-    modal.addEventListener('click', function(e) {
-        if (e.target === modal || e.target.className === 'close-button') {
-            modal.remove();
-        }
+    return modal;
+}
+
+// Initialize custom audio players
+function initializeAudioPlayers() {
+    document.querySelectorAll('audio').forEach(audio => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'audio-player';
+        audio.parentNode.insertBefore(wrapper, audio);
+        wrapper.appendChild(audio);
+        
+        audio.addEventListener('play', () => {
+            wrapper.classList.add('playing');
+        });
+        
+        audio.addEventListener('pause', () => {
+            wrapper.classList.remove('playing');
+        });
     });
 }
 
-// Add scroll to top button functionality
-window.addEventListener('scroll', function() {
-    const scrollButton = document.querySelector('.scroll-to-top');
-    if (window.pageYOffset > 300) {
-        scrollButton?.classList.add('show');
-    } else {
-        scrollButton?.classList.remove('show');
-    }
-});
+// Initialize scroll to top
+function initializeScrollToTop() {
+    const scrollButton = document.createElement('div');
+    scrollButton.className = 'scroll-to-top';
+    scrollButton.innerHTML = '<i class="fas fa-arrow-up"></i>';
+    document.body.appendChild(scrollButton);
+    
+    window.addEventListener('scroll', () => {
+        if (window.pageYOffset > 300) {
+            scrollButton.classList.add('show');
+        } else {
+            scrollButton.classList.remove('show');
+        }
+    });
+    
+    scrollButton.addEventListener('click', () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+}
+
+// Rest of your existing functions...
