@@ -258,9 +258,27 @@
                     if (data.stream_url) {
                         const audioPlayer = document.getElementById("audioPlayer");
                         audioPlayer.src = data.stream_url;
-                        audioPlayer.play().catch((error) => {
-                            console.log("Autoplay was prevented:", error);
-                        });
+                        
+                        // Cách 1: Thêm các thuộc tính để hỗ trợ autoplay
+                        audioPlayer.setAttribute('playsinline', '');
+                        audioPlayer.setAttribute('webkit-playsinline', '');
+                        audioPlayer.setAttribute('autoplay', '');
+                        
+                        // Cách 2: Sử dụng Promise chain
+                        const playPromise = audioPlayer.play();
+                        if (playPromise !== undefined) {
+                            playPromise
+                                .then(() => {
+                                    console.log("Audio started playing successfully");
+                                })
+                                .catch(error => {
+                                    console.log("Autoplay was prevented:", error);
+                                    // Thử phát lại sau một khoảng thời gian ngắn
+                                    setTimeout(() => {
+                                        audioPlayer.play().catch(e => console.log("Retry failed:", e));
+                                    }, 100);
+                                });
+                        }
                     }
                 } else {
                     console.error("Lỗi khi gửi audio đến server:", response.statusText);
