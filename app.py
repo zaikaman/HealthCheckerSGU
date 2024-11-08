@@ -13,7 +13,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'your_secret_key'  # Needed if you plan to use flash messages
 
 # Initialize ElevenLabs client
-client = ElevenLabs(api_key="sk_89c7d9a5cc4ac949a91b7bfc92c47be8115ae6e2a4f4b17a")
+client = ElevenLabs(api_key="sk_0282f7067c9709491cbe2e584d4d993a0cb07b2a1fe0aa42")
 
 analysis_result = ""
 
