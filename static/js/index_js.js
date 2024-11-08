@@ -1,4 +1,3 @@
-// Document ready handler
 document.addEventListener('DOMContentLoaded', function() {
     // Add smooth scrolling to all links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -87,6 +86,40 @@ document.addEventListener('DOMContentLoaded', function() {
     tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
+
+    // Thêm xử lý cho nút yêu cầu đăng nhập
+    const loginModal = document.getElementById('loginModal');
+    const checkLoginButtons = document.querySelectorAll('.check-login');
+    const menuDropdown = document.querySelector('.dropdown-toggle');
+
+    function showLoginModal(e) {
+        e.preventDefault();
+        loginModal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function hideLoginModal(e) {
+        if (e.target === loginModal) {
+            loginModal.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+    }
+
+    // Thêm event listeners
+    checkLoginButtons.forEach(button => {
+        button.addEventListener('click', showLoginModal);
+    });
+
+    loginModal.addEventListener('click', hideLoginModal);
+
+    // Xử lý menu dropdown khi chưa đăng nhập
+    if (menuDropdown && !document.body.dataset.loggedIn) {
+        menuDropdown.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            showLoginModal(e);
+        });
+    }
 });
 
 // Feature card click handler
