@@ -205,7 +205,7 @@
         // Hàm để gửi âm thanh đến server để phân tích
         async function analyzeAudioWithGemini(audioBlob) {
             const formData = new FormData();
-            formData.append("audio", audioBlob, "recording.webm"); // Use 'recording.webm' as the filename
+            formData.append("audio", audioBlob, "recording.webm");
 
             const response = await fetch("/analyze_audio", {
                 method: "POST",
@@ -219,7 +219,7 @@
                 const cleanedResult = data.result.replace(/\*/g, "");
                 document.getElementById("statusMessage").innerText = "";
 
-                // Typing effect
+                // Typing effect for displaying the result
                 typeText("analysisResult", "Phân tích hoàn tất: " + cleanedResult);
 
                 // Play audio if the URL is provided
