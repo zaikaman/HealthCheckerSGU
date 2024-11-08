@@ -248,6 +248,23 @@ def stream_audio():
     else:
         return jsonify({"result": "Lỗi: Không có kết quả phân tích."}), 400
 
+@app.route('/history')
+def history():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    
+    user = User.query.filter_by(username=session['username']).first()
+    
+    # Lấy lịch sử từ cả 3 bảng
+    file_analyses = FileAnalysis.query.filter_by(email=user.email).order_by(FileAnalysis.created_at.desc()).all()
+    health_analyses = HealthAnalysis.query.filter_by(email=user.email).order_by(HealthAnalysis.created_at.desc()).all()
+    ai_doctor_analyses = AiDoctor.query.filter_by(email=user.email).order_by(AiDoctor.created_at.desc()).all()
+    
+    return render_template('history.html', 
+                         file_analyses=file_analyses,
+                         health_analyses=health_analyses,
+                         ai_doctor_analyses=ai_doctor_analyses)
+
 if __name__ == '__main__':
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
         os.makedirs(app.config['UPLOAD_FOLDER'])
