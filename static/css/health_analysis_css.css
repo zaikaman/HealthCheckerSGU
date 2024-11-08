@@ -88,7 +88,8 @@ h1 {
 
 .navbar-brand img {
     height: 30px;
-    margin-left: 10px;
+    margin-right: 10px;
+    cursor: pointer;
 }
 
 .navbar-nav .nav-link {
