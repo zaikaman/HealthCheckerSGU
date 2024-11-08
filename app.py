@@ -18,6 +18,7 @@ import time
 import re
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import inspect
+import logging
 
 app = Flask(__name__)
 
@@ -112,9 +113,12 @@ app.config['MAIL_SERVER'] = 'imap.gmail.com'  # Thay đổi server thành IMAP
 app.config['MAIL_PORT'] = 993  # Port cho IMAP SSL
 app.config['MAIL_USE_SSL'] = True  # Sử dụng SSL thay vì TLS
 app.config['MAIL_USE_TLS'] = False
-app.config['MAIL_USERNAME'] = 'thinhgpt1706@gmail.com'
-app.config['MAIL_PASSWORD'] = 'xgxn kjcv haqf sjxz'
-mail = Mail(app)
+app.config['MAIL_USERNAME'] = 'thinhgpt1706@gmail.com'  # Thay bằng email của bạn
+app.config['MAIL_PASSWORD'] = 'xgxn kjcv haqf sjxz'  # Thay bằng app password từ Google
+
+# Thêm logging để debug
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 def generate_confirmation_token(email):
     return jwt.encode(
@@ -147,15 +151,20 @@ Link này sẽ hết hạn sau 24 giờ.
         # Chuyển message thành string
         email_string = msg.as_string()
 
-        # Lưu email vào thư mục Sent
-        imap.append('Sent', '\\Seen', imaplib.Time2Internaldate(time.time()), email_string.encode('utf-8'))
-        
-        # Đóng kết nối
-        imap.logout()
-        
-        return True
+        try:
+            # Lưu email vào thư mục Sent
+            imap.append('Sent', '\\Seen', imaplib.Time2Internaldate(time.time()), email_string.encode('utf-8'))
+            logger.info(f"Email sent successfully to {to_email}")
+            
+            # Đóng kết nối
+            imap.logout()
+            return True
+        except Exception as e:
+            logger.error(f"Error appending email: {str(e)}")
+            return False
+            
     except Exception as e:
-        print(f"Error sending email: {str(e)}")
+        logger.error(f"Error sending email: {str(e)}")
         return False
 
 # Hàm validate email
@@ -283,13 +292,15 @@ def signup():
                 # Gửi email xác nhận
                 token = generate_confirmation_token(email)
                 if send_confirmation_email(email, token):
+                    logger.info(f"Confirmation email sent to {email}")
                     flash("Tài khoản đã được tạo! Vui lòng kiểm tra email để xác nhận.", "success")
                 else:
+                    logger.error(f"Failed to send confirmation email to {email}")
                     flash("Có lỗi xảy ra khi gửi email xác nhận. Vui lòng thử lại.", "danger")
                 return redirect(url_for('login'))
             except Exception as e:
                 db.session.rollback()
-                print(f"Error: {str(e)}")
+                logger.error(f"Error during signup: {str(e)}")
                 flash("Có lỗi xảy ra, vui lòng thử lại sau", "danger")
     
     return render_template('signup.html')
@@ -304,7 +315,7 @@ def confirm_email(token):
         if user:
             user.verified = True
             db.session.commit()
-            flash('Tài khoản của b���n đã được xác nhận! Bạn có thể đăng nhập ngay bây giờ.', 'success')
+            flash('Tài khoản của bn đã được xác nhận! Bạn có thể đăng nhập ngay bây giờ.', 'success')
         else:
             flash('Link xác nhận không hợp lệ.', 'danger')
             
@@ -341,7 +352,7 @@ def health_analysis():
                     folder="health_checker")
                 file_url = upload_result['secure_url']
 
-                # Phân tích v���i AI (sử dụng file local)
+                # Phân tích với AI (sử dụng file local)
                 text_prompt = "Hãy phân tích tình trạng thể chất của người trong bức ảnh này một cách khách quan và chuyên nghiệp. Hãy đưa ra nhận xét về các yếu tố như: tư thế, dáng người, cân nặng ước tính, và các dấu hiệu thể chất có thể quan sát được. Đưa ra những gợi ý và lời khuyên hữu ích để cải thiện sức khỏe nếu cần thiết. Hãy giữ giọng điệu tích cực và mang tính xây dựng."
                 result = analyze_text_with_image(text_prompt, filepath)
 
