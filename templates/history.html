@@ -218,7 +218,7 @@
                     {% for analysis in file_analyses %}
                     <div class="history-card">
                         <div class="history-date">
-                            <i class="far fa-clock"></i> {{ analysis.created_at.strftime('%d/%m/%Y %H:%M:%S') }}
+                            <i class="far fa-clock"></i> {{ (analysis.created_at + timedelta(hours=7)).strftime('%d/%m/%Y %H:%M:%S') }}
                         </div>
                         <div class="history-type">
                             <i class="fas fa-file-medical"></i> Phân tích hồ sơ y tế
@@ -246,7 +246,7 @@
                     {% for analysis in health_analyses %}
                     <div class="history-card">
                         <div class="history-date">
-                            <i class="far fa-clock"></i> {{ analysis.created_at.strftime('%d/%m/%Y %H:%M:%S') }}
+                            <i class="far fa-clock"></i> {{ (analysis.created_at + timedelta(hours=7)).strftime('%d/%m/%Y %H:%M:%S') }}
                         </div>
                         <div class="history-type">
                             <i class="fas fa-heartbeat"></i> Phân tích thể trạng
@@ -272,7 +272,7 @@
             <div class="tab-pane fade" id="doctor" role="tabpanel">
                 {% for analysis in ai_doctor_analyses %}
                 <div class="history-card">
-                    <div class="history-date">{{ analysis.created_at.strftime('%d/%m/%Y %H:%M:%S') }}</div>
+                    <div class="history-date">{{ (analysis.created_at + timedelta(hours=7)).strftime('%d/%m/%Y %H:%M:%S') }}</div>
                     <div class="history-type">Tư vấn bác sĩ AI</div>
                     <div>Audio: {{ analysis.input }}</div>
                     <div class="history-content">
