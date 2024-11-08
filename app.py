@@ -8,6 +8,15 @@ from datetime import datetime, timedelta
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
+from flask_mail import Mail, Message
+import jwt
+import imaplib
+import email
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import time
+import re
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 
@@ -37,6 +46,7 @@ class User(db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
+    verified = db.Column(db.Boolean, default=False)
 
 # Thêm vào phần đầu file, sau class User
 class FileAnalysis(db.Model):
@@ -73,6 +83,62 @@ cloudinary.config(
     api_key = "419138417289347",
     api_secret = "cm9Rws-Nh44hnuzHER4LBxK2gCY"
 )
+
+# Thêm cấu hình email sau app = Flask(__name__)
+app.config['MAIL_SERVER'] = 'imap.gmail.com'  # Thay đổi server thành IMAP
+app.config['MAIL_PORT'] = 993  # Port cho IMAP SSL
+app.config['MAIL_USE_SSL'] = True  # Sử dụng SSL thay vì TLS
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USERNAME'] = 'thinhgpt1706@gmail.com'
+app.config['MAIL_PASSWORD'] = 'xgxn kjcv haqf sjxz'
+mail = Mail(app)
+
+def generate_confirmation_token(email):
+    return jwt.encode(
+        {'email': email, 'exp': datetime.utcnow() + timedelta(hours=24)},
+        app.config['SECRET_KEY'],
+        algorithm='HS256'
+    )
+
+def send_confirmation_email(to_email, token):
+    try:
+        # Kết nối tới IMAP server
+        imap = imaplib.IMAP4_SSL(app.config['MAIL_SERVER'])
+        imap.login(app.config['MAIL_USERNAME'], app.config['MAIL_PASSWORD'])
+
+        # Tạo message
+        msg = MIMEMultipart()
+        msg['From'] = app.config['MAIL_USERNAME']
+        msg['To'] = to_email
+        msg['Subject'] = 'Xác nhận tài khoản'
+
+        # Tạo nội dung email
+        confirm_url = url_for('confirm_email', token=token, _external=True)
+        body = f'''Để xác nhận tài khoản của bạn, vui lòng click vào link sau:
+{confirm_url}
+
+Link này sẽ hết hạn sau 24 giờ.
+'''
+        msg.attach(MIMEText(body, 'plain'))
+
+        # Chuyển message thành string
+        email_string = msg.as_string()
+
+        # Lưu email vào thư mục Sent
+        imap.append('Sent', '\\Seen', imaplib.Time2Internaldate(time.time()), email_string.encode('utf-8'))
+        
+        # Đóng kết nối
+        imap.logout()
+        
+        return True
+    except Exception as e:
+        print(f"Error sending email: {str(e)}")
+        return False
+
+# Hàm validate email
+def is_valid_email(email):
+    pattern = r'^[\w\.-]+@[\w\.-]+\.\w+$'
+    return re.match(pattern, email) is not None
 
 @app.route('/')
 def index():
@@ -138,13 +204,16 @@ def login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-        user = User.query.filter_by(username=username, password=password).first()
+        user = User.query.filter_by(username=username).first()
         
-        if user:
-            session['username'] = user.username
-            return redirect(url_for('index'))
+        if user and check_password_hash(user.password, password):
+            if user.verified:
+                session['username'] = user.username
+                return redirect(url_for('index'))
+            else:
+                flash("Vui lòng xác nhận email trước khi đăng nhập", "warning")
         else:
-            flash("Invalid username or password", "danger")
+            flash("Tên đăng nhập hoặc mật khẩu không đúng", "danger")
     return render_template('login.html')
 
 @app.route('/logout')
@@ -159,17 +228,69 @@ def signup():
         email = request.form.get('email')
         password = request.form.get('password')
         
+        # Validate input
+        if not username or not email or not password:
+            flash("Vui lòng điền đầy đủ thông tin", "danger")
+            return redirect(url_for('signup'))
+            
+        if not is_valid_email(email):
+            flash("Email không hợp lệ", "danger")
+            return redirect(url_for('signup'))
+            
+        if len(password) < 6:
+            flash("Mật khẩu phải có ít nhất 6 ký tự", "danger")
+            return redirect(url_for('signup'))
+        
         existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
         if existing_user:
-            flash("Username or Email already exists", "danger")
+            flash("Tên đăng nhập hoặc Email đã tồn tại", "danger")
         else:
-            new_user = User(username=username, email=email, password=password)
-            db.session.add(new_user)
-            db.session.commit()
-            flash("Account created successfully!", "success")
-            return redirect(url_for('login'))
+            # Hash password trước khi lưu
+            hashed_password = generate_password_hash(password)
+            new_user = User(
+                username=username, 
+                email=email, 
+                password=hashed_password,
+                verified=False
+            )
+            try:
+                db.session.add(new_user)
+                db.session.commit()
+                
+                # Gửi email xác nhận
+                token = generate_confirmation_token(email)
+                if send_confirmation_email(email, token):
+                    flash("Tài khoản đã được tạo! Vui lòng kiểm tra email để xác nhận.", "success")
+                else:
+                    flash("Có lỗi xảy ra khi gửi email xác nhận. Vui lòng thử lại.", "danger")
+                return redirect(url_for('login'))
+            except Exception as e:
+                db.session.rollback()
+                print(f"Error: {str(e)}")
+                flash("Có lỗi xảy ra, vui lòng thử lại sau", "danger")
     
     return render_template('signup.html')
+
+@app.route('/confirm/<token>')
+def confirm_email(token):
+    try:
+        decoded = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
+        email = decoded['email']
+        user = User.query.filter_by(email=email).first()
+        
+        if user:
+            user.verified = True
+            db.session.commit()
+            flash('Tài khoản của bạn đã được xác nhận! Bạn có thể đăng nhập ngay bây giờ.', 'success')
+        else:
+            flash('Link xác nhận không hợp lệ.', 'danger')
+            
+    except jwt.ExpiredSignatureError:
+        flash('Link xác nhận đã hết hạn.', 'danger')
+    except jwt.InvalidTokenError:
+        flash('Link xác nhận không hợp lệ.', 'danger')
+        
+    return redirect(url_for('login'))
 
 @app.route('/health_analysis', methods=['GET', 'POST'])
 def health_analysis():

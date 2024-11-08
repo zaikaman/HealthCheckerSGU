@@ -5,3 +5,8 @@ flask_sqlalchemy
 mysqlclient
 elevenlabs
 cloudinary
+flask-mail
+PyJWT
+python-imap
+Werkzeug  # Cho secure_filename
+python-dotenv  # Khuyến nghị để quản lý biến môi trường

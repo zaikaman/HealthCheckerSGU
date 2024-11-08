@@ -8,6 +8,13 @@
         <div class="col-md-6">
             <h1 class="text-center mb-4">Đăng Ký</h1>
             <form method="post" action="{{ url_for('signup') }}">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
                 <div class="mb-3">
                     <label for="username" class="form-label">Tên đăng nhập:</label>
                     <input type="text" id="username" name="username" class="form-control" placeholder="Nhập tên đăng nhập" required>
@@ -20,7 +27,7 @@
 
                 <div class="mb-3">
                     <label for="password" class="form-label">Mật khẩu:</label>
-                    <input type="password" id="password" name="password" class="form-control" placeholder="Nhập mật khẩu" required>
+                    <input type="password" id="password" name="password" class="form-control" placeholder="Nhập mật khẩu" pattern=".{6,}" title="Mật khẩu phải có ít nhất 6 ký tự" required>
                 </div>
 
                 <button type="submit" class="btn btn-primary w-100">Đăng Ký</button>
