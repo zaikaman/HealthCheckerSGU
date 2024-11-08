@@ -10,16 +10,16 @@ app = Flask(__name__)
 # Cấu hình cơ sở dữ liệu
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://yh2k7r2tjiynygfo:chsl4bzvipbei6jc@o3iyl77734b9n3tg.cbetxkdyhwsb.us-east-1.rds.amazonaws.com:3306/wk5ybqcvorkax5bp'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.secret_key = 'your_secret_key'  # Needed if you plan to use flash messages
+app.secret_key = 'your_secret_key'
 
-# Initialize ElevenLabs client
+# Khởi tạo ElevenLabs client
 client = ElevenLabs(api_key="sk_0282f7067c9709491cbe2e584d4d993a0cb07b2a1fe0aa42")
 
 analysis_result = ""
 
 # Cấu hình thư mục tải lên
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg','webp'}
-app.config['UPLOAD_FOLDER'] = 'uploads'  # Đặt tên cho thư mục tải lên
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
+app.config['UPLOAD_FOLDER'] = 'uploads'
 
 # Kiểm tra đuôi file
 def allowed_file(filename):
@@ -42,15 +42,45 @@ with app.app_context():
 def index():
     return render_template('index.html')
 
+@app.route('/file_analysis', methods=['GET', 'POST'])
+def file_analysis():
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            flash('No file part')
+            return redirect(request.url)
+
+        file = request.files['file']
+        if file.filename == '':
+            flash('No selected file')
+            return redirect(request.url)
+        
+        if file and allowed_file(file.filename):
+            if not os.path.exists(app.config['UPLOAD_FOLDER']):
+                os.makedirs(app.config['UPLOAD_FOLDER'])
+
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(file.filename))
+            file.save(filepath)
+            
+            # Phân tích với Gemini AI
+            text_prompt = "Hãy phân tích chi tiết hồ sơ y tế hoặc đơn thuốc này và đưa ra những thông tin quan trọng."
+            extracted_entities = analyze_text_with_image(text_prompt, filepath)
+            
+            # Xóa tập tin sau khi xử lý
+            os.remove(filepath)
+            
+            return render_template('file_analysis.html', extracted_entities=extracted_entities)
+    
+    return render_template('file_analysis.html')
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-        user = User.query.filter_by(username=username, password=password).first()  # Kiểm tra thông tin đăng nhập
+        user = User.query.filter_by(username=username, password=password).first()
         
         if user:
-            session['username'] = user.username  # Lưu tên người dùng vào session
+            session['username'] = user.username
             return redirect(url_for('index'))
         else:
             flash("Invalid username or password", "danger")
@@ -58,8 +88,7 @@ def login():
 
 @app.route('/logout')
 def logout():
-    session.pop('username', None)  # Xóa tên người dùng khỏi session
-    #flash("Logged out successfully!", "success")
+    session.pop('username', None)
     return redirect(url_for('index'))
 
 @app.route('/signup', methods=['GET', 'POST'])
@@ -69,7 +98,6 @@ def signup():
         email = request.form.get('email')
         password = request.form.get('password')
         
-        # Kiểm tra xem người dùng đã tồn tại chưa
         existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
         if existing_user:
             flash("Username or Email already exists", "danger")
@@ -82,60 +110,27 @@ def signup():
     
     return render_template('signup.html')
 
-@app.route('/upload', methods=['POST'])
-def upload_file():
-    if 'file' not in request.files:
-        return redirect(request.url)
-    file = request.files['file']
-    if file.filename == '':
-        return redirect(request.url)
-    
-    if file and allowed_file(file.filename):
-        # Ensure the 'uploads' folder exists
-        if not os.path.exists(app.config['UPLOAD_FOLDER']):
-            os.makedirs(app.config['UPLOAD_FOLDER'])
-
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-        file.save(filepath)
-        
-        # Directly analyze the image with Gemini AI
-        text_prompt = "Hãy phân tích tình trạng sức khỏe của bệnh nhân dựa trên văn bản này. Nếu đây là đơn thuốc, hãy suy luận về các khả năng bệnh lý dựa trên các loại thuốc được kê và giải thích lý do có thể cho việc sử dụng từng loại thuốc. Đưa ra nhận xét về tình trạng sức khỏe của bệnh nhân cũng như các hành vi và thói quen nên hoặc không nên thực hiện để cải thiện tình trạng bệnh. Hãy cung cấp lời khuyên cụ thể và hữu ích, tập trung vào chế độ ăn uống, hoạt động thể chất và các thói quen lành mạnh:"
-        extracted_entities = analyze_text_with_image(text_prompt, filepath)
-        
-        # Delete the file after processing
-        os.remove(filepath)
-        
-        # Display the result
-        return render_template('index.html', extracted_entities=extracted_entities)
-    
-    return redirect(request.url)
-
 @app.route('/health_analysis', methods=['GET', 'POST'])
 def health_analysis():
     if request.method == 'POST':
-        # Kiểm tra xem file đã được tải lên chưa
         if 'file' not in request.files:
             flash('No file part')
             return redirect(request.url)
 
         file = request.files['file']
-        
-        # Nếu không có file được chọn, báo cho người dùng
         if file.filename == '':
             flash('No selected file')
             return redirect(request.url)
 
-        # Lưu file
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(file_path)
 
-            # Phân tích tin nhắn và ảnh
             text_prompt = "Hãy phân tích tình trạng thể chất của người trong bức ảnh này. Xin hãy đánh giá các yếu tố như thể trạng tổng thể, chỉ số cơ thể có thể suy đoán (như vóc dáng, sức mạnh cơ bắp, mức độ linh hoạt), khả năng hoạt động thể chất, và tiềm năng thực hiện các loại hình thể dục khác nhau. Nếu có thể, hãy đưa ra những nhận xét tinh tế và động viên để giúp người này nhận thức rõ hơn về sức khỏe của mình, cùng một số lời khuyên hữu ích để phát triển lối sống lành mạnh."
             result = analyze_text_with_image(text_prompt, file_path)
 
-            # Hiện kết quae
+            os.remove(file_path)
             return render_template('health_analysis.html', health_analysis_result=result)
 
     return render_template('health_analysis.html')
@@ -145,10 +140,9 @@ def ai_doctor():
     return render_template('ai_doctor.html')
 
 def stream_text_to_speech(text):
-    # Stream text-to-speech response directly from ElevenLabs
     audio_stream = client.generate(
         text=text,
-        voice="Eric",  # Choose the desired voice
+        voice="Eric",
         model="eleven_turbo_v2_5",
         stream=True
     )
@@ -156,7 +150,6 @@ def stream_text_to_speech(text):
 
 @app.route('/analyze_audio', methods=['POST'])
 def analyze_audio():
-    # Check if audio is in request files
     if 'audio' not in request.files:
         return jsonify({"result": "Lỗi: Không tìm thấy tệp âm thanh."}), 400
 
@@ -164,10 +157,8 @@ def analyze_audio():
     audio_file_path = f"/tmp/{audio_file.filename}"
     audio_file.save(audio_file_path)
 
-    # Analyze the audio using Gemini integration
     analysis_result = analyze_audio_with_gemini(audio_file_path)
 
-    # If analysis is successful, stream the audio in the response
     if analysis_result:
         audio_stream_url = url_for('stream_audio', result=analysis_result)
         return jsonify({"result": analysis_result, "audio_url": audio_stream_url})
@@ -193,6 +184,5 @@ def stream_audio():
 if __name__ == '__main__':
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
         os.makedirs(app.config['UPLOAD_FOLDER'])
-    # Bind to the Heroku-specified port
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port, debug=True)
