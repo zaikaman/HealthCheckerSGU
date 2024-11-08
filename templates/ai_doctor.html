@@ -209,11 +209,11 @@
             if (!isRecording) {
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    // Specify the desired audio format. 'audio/webm' is more widely supported
-                    mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/mp4' });
+                    // Thay đổi định dạng sang audio/mpeg
+                    mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/mpeg' });
                     mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
                     mediaRecorder.onstop = async () => {
-                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/mpeg' });
                         audioChunks = [];
                         await analyzeAudioWithGemini(audioBlob);
                     };
@@ -236,7 +236,7 @@
         // Hàm để gửi âm thanh đến server để phân tích
         async function analyzeAudioWithGemini(audioBlob) {
             const formData = new FormData();
-            formData.append("audio", audioBlob, "recording.webm");
+            formData.append("audio", audioBlob, "recording.mp3");
 
             try {
                 const response = await fetch("/analyze_audio", {
@@ -255,9 +255,9 @@
                     typeText("analysisResult", "Phân tích hoàn tất: " + cleanedResult);
 
                     // Play audio from stream_url
-                    if (data.stream_url) {
+                    if (data.audio_url) {
                         const audioPlayer = document.getElementById("audioPlayer");
-                        audioPlayer.src = data.stream_url;
+                        audioPlayer.src = data.audio_url;
                         audioPlayer.play().catch((error) => {
                             console.log("Autoplay was prevented:", error);
                         });
