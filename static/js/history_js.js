@@ -132,4 +132,71 @@ function initializeScrollToTop() {
     });
 }
 
+// Initialize history cards
+function initializeHistoryCards() {
+    const historyCards = document.querySelectorAll('.history-card');
+    
+    historyCards.forEach(card => {
+        // Add hover effect
+        card.addEventListener('mouseenter', () => {
+            card.style.transform = 'translateY(-5px)';
+            card.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.12)';
+        });
+        
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'translateY(0)';
+            card.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.08)';
+        });
+
+        // Format dates
+        const dateElement = card.querySelector('.history-date');
+        if (dateElement) {
+            const date = new Date(dateElement.textContent.trim());
+            if (!isNaN(date)) {
+                dateElement.innerHTML = `
+                    <i class="far fa-clock"></i> 
+                    ${date.toLocaleDateString('vi-VN', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                    })}
+                `;
+            }
+        }
+
+        // Format content
+        const resultContainer = card.querySelector('.result-container');
+        if (resultContainer) {
+            // Clean up and format the content
+            let content = resultContainer.innerHTML;
+            content = content.replace(/\n/g, '<br>');
+            content = content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            resultContainer.innerHTML = content;
+        }
+
+        // Add copy button for text content
+        const textContent = card.querySelector('.history-content');
+        if (textContent) {
+            const copyButton = document.createElement('button');
+            copyButton.className = 'btn btn-sm btn-outline-primary mt-2';
+            copyButton.innerHTML = '<i class="fas fa-copy"></i> Sao chép';
+            copyButton.onclick = () => {
+                const text = textContent.textContent.trim();
+                navigator.clipboard.writeText(text)
+                    .then(() => {
+                        copyButton.innerHTML = '<i class="fas fa-check"></i> Đã sao chép';
+                        setTimeout(() => {
+                            copyButton.innerHTML = '<i class="fas fa-copy"></i> Sao chép';
+                        }, 2000);
+                    })
+                    .catch(err => console.error('Copy failed:', err));
+            };
+            textContent.appendChild(copyButton);
+        }
+    });
+}
+
 // Rest of your existing functions...
