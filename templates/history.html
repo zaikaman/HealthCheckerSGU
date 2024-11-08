@@ -14,33 +14,84 @@
         }
         .container {
             max-width: 800px;
-            margin: 50px auto;
+            margin: 30px auto;
             padding: 20px;
+        }
+        .history-header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #007bff;
+        }
+        .nav-tabs {
+            border-bottom: 2px solid #dee2e6;
+            margin-bottom: 25px;
+            justify-content: center;
+        }
+        .nav-tabs .nav-link {
+            color: #6c757d;
+            border: none;
+            padding: 10px 20px;
+            margin: 0 10px;
+            font-weight: 500;
+        }
+        .nav-tabs .nav-link:hover {
+            border: none;
+            color: #007bff;
+        }
+        .nav-tabs .nav-link.active {
+            color: #007bff;
+            background: none;
+            border: none;
+            border-bottom: 2px solid #007bff;
         }
         .history-card {
             background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             margin-bottom: 20px;
             padding: 20px;
+            transition: transform 0.2s ease;
+        }
+        .history-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
         .history-date {
-            color: #666;
+            color: #6c757d;
             font-size: 0.9rem;
+            margin-bottom: 8px;
         }
         .history-type {
             color: #007bff;
             font-weight: 500;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+        .history-file {
+            background-color: #e9ecef;
+            padding: 8px 12px;
+            border-radius: 5px;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
         }
         .history-content {
             background-color: #f8f9fa;
             padding: 15px;
-            border-radius: 5px;
+            border-radius: 8px;
             margin-top: 10px;
+            border: 1px solid #dee2e6;
         }
-        .nav-tabs {
-            margin-bottom: 20px;
+        .history-content pre {
+            margin: 0;
+            white-space: pre-wrap;
+            font-size: 0.95rem;
+            color: #212529;
+        }
+        .no-records {
+            text-align: center;
+            color: #6c757d;
+            padding: 30px;
+            font-style: italic;
         }
     </style>
 </head>
@@ -104,31 +155,53 @@
     </nav>
 
     <div class="container">
+        <div class="history-header">
+            <h2><i class="fas fa-history"></i> Lịch Sử Phân Tích</h2>
+        </div>
+
         <ul class="nav nav-tabs" id="historyTabs" role="tablist">
             <li class="nav-item">
-                <a class="nav-link active" id="file-tab" data-bs-toggle="tab" href="#file" role="tab">Hồ Sơ Y Tế</a>
+                <a class="nav-link active" id="file-tab" data-bs-toggle="tab" href="#file" role="tab">
+                    <i class="fas fa-file-medical"></i> Hồ Sơ Y Tế
+                </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" id="health-tab" data-bs-toggle="tab" href="#health" role="tab">Thể Trạng</a>
+                <a class="nav-link" id="health-tab" data-bs-toggle="tab" href="#health" role="tab">
+                    <i class="fas fa-heartbeat"></i> Thể Trạng
+                </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" id="doctor-tab" data-bs-toggle="tab" href="#doctor" role="tab">Bác Sĩ AI</a>
+                <a class="nav-link" id="doctor-tab" data-bs-toggle="tab" href="#doctor" role="tab">
+                    <i class="fas fa-user-md"></i> Bác Sĩ AI
+                </a>
             </li>
         </ul>
 
         <div class="tab-content" id="historyTabContent">
             <!-- Hồ Sơ Y Tế -->
             <div class="tab-pane fade show active" id="file" role="tabpanel">
-                {% for analysis in file_analyses %}
-                <div class="history-card">
-                    <div class="history-date">{{ analysis.created_at.strftime('%d/%m/%Y %H:%M:%S') }}</div>
-                    <div class="history-type">Phân tích hồ sơ y tế</div>
-                    <div>File: {{ analysis.input }}</div>
-                    <div class="history-content">
-                        <pre>{{ analysis.output }}</pre>
+                {% if file_analyses %}
+                    {% for analysis in file_analyses %}
+                    <div class="history-card">
+                        <div class="history-date">
+                            <i class="far fa-clock"></i> {{ analysis.created_at.strftime('%d/%m/%Y %H:%M:%S') }}
+                        </div>
+                        <div class="history-type">
+                            <i class="fas fa-file-medical"></i> Phân tích hồ sơ y tế
+                        </div>
+                        <div class="history-file">
+                            <i class="fas fa-file"></i> {{ analysis.input }}
+                        </div>
+                        <div class="history-content">
+                            <pre>{{ analysis.output }}</pre>
+                        </div>
                     </div>
-                </div>
-                {% endfor %}
+                    {% endfor %}
+                {% else %}
+                    <div class="no-records">
+                        <i class="fas fa-info-circle"></i> Chưa có lịch sử phân tích hồ sơ y tế
+                    </div>
+                {% endif %}
             </div>
 
             <!-- Thể Trạng -->
