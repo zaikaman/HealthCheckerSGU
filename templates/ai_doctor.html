@@ -228,32 +228,38 @@
             const formData = new FormData();
             formData.append("audio", audioBlob, "recording.webm");
 
-            const response = await fetch("/analyze_audio", {
-                method: "POST",
-                body: formData
-            });
+            try {
+                const response = await fetch("/analyze_audio", {
+                    method: "POST",
+                    body: formData
+                });
 
-            if (response.ok) {
-                const data = await response.json();
-                console.log("Gemini response:", data);
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log("Gemini response:", data);
 
-                const cleanedResult = data.result.replace(/\*/g, "");
-                document.getElementById("statusMessage").innerText = "";
+                    const cleanedResult = data.result.replace(/\*/g, "");
+                    document.getElementById("statusMessage").innerText = "";
 
-                // Typing effect for displaying the result
-                typeText("analysisResult", "Phân tích hoàn tất: " + cleanedResult);
+                    // Typing effect for displaying the result
+                    typeText("analysisResult", "Phân tích hoàn tất: " + cleanedResult);
 
-                // Play audio if the URL is provided
-                if (data.audio_url) {
-                    const audioPlayer = document.getElementById("audioPlayer");
-                    audioPlayer.src = data.audio_url;
-                    audioPlayer.play().catch((error) => {
-                        console.log("Autoplay was prevented:", error);
-                    });
+                    // Play audio from stream_url
+                    if (data.stream_url) {
+                        const audioPlayer = document.getElementById("audioPlayer");
+                        audioPlayer.src = data.stream_url;
+                        audioPlayer.play().catch((error) => {
+                            console.log("Autoplay was prevented:", error);
+                        });
+                    }
+                } else {
+                    console.error("Lỗi khi gửi audio đến server:", response.statusText);
+                    document.getElementById("statusMessage").innerText = "Lỗi: Không thể phân tích âm thanh.";
+                    document.getElementById("analysisResult").innerHTML = "";
                 }
-            } else {
-                console.error("Lỗi khi gửi audio đến server:", response.statusText);
-                document.getElementById("statusMessage").innerText = "Lỗi: Không thể phân tích âm thanh.";
+            } catch (error) {
+                console.error("Error:", error);
+                document.getElementById("statusMessage").innerText = "Lỗi: Không thể kết nối đến server.";
                 document.getElementById("analysisResult").innerHTML = "";
             }
         }

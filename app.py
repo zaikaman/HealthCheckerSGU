@@ -264,6 +264,9 @@ def analyze_audio():
         analysis_result = analyze_audio_with_gemini(filepath)
 
         if analysis_result:
+            # Tạo audio response từ ElevenLabs
+            audio_stream = stream_text_to_speech(analysis_result)
+            
             user = User.query.filter_by(username=session['username']).first()
             analysis = AiDoctor(
                 email=user.email,
@@ -278,7 +281,7 @@ def analyze_audio():
 
             return jsonify({
                 "result": analysis_result,
-                "audio_url": audio_url
+                "stream_url": url_for('stream_audio', result=analysis_result)
             })
         else:
             if os.path.exists(filepath):
