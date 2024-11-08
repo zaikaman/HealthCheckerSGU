@@ -181,7 +181,7 @@ def health_analysis():
             user = User.query.filter_by(username=session['username']).first()
             analysis = HealthAnalysis(
                 email=user.email,
-                input=filename,  # Lưu tên file với timestamp
+                input=filename,
                 output=result
             )
             db.session.add(analysis)
