@@ -85,17 +85,23 @@ body {
 }
 
 .history-file {
-    background-color: #e9ecef;
-    padding: 8px 12px;
-    border-radius: 6px;
-    margin: 10px 0;
-    font-size: 0.9rem;
-    color: #495057;
+    text-align: center;
+    margin: 15px 0;
+    background: none;
+    padding: 0;
 }
 
-.history-file i {
-    color: #6c757d;
-    margin-right: 6px;
+.history-file img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+    cursor: zoom-in;
+}
+
+.history-file img:hover {
+    transform: scale(1.02);
 }
 
 .history-content {
@@ -225,6 +231,7 @@ audio {
     z-index: 1000;
     opacity: 0;
     transition: opacity 0.3s ease;
+    padding: 20px;
 }
 
 .image-preview-modal.visible {
@@ -233,15 +240,32 @@ audio {
 
 .modal-content {
     position: relative;
-    max-width: 90%;
-    max-height: 90vh;
+    max-width: 95%;
+    max-height: 95vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .modal-content img {
     max-width: 100%;
-    max-height: 90vh;
+    max-height: 95vh;
     object-fit: contain;
     border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.close-button {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 30px;
+    cursor: pointer;
+    padding: 5px;
+    line-height: 1;
 }
 
 /* Custom audio player */
@@ -289,4 +313,11 @@ audio {
 
 .copy-success {
     animation: fadeInOut 2s ease;
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+    .history-file img {
+        max-width: 100%;
+    }
 }
