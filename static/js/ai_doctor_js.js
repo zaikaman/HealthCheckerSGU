@@ -3,35 +3,48 @@ let isRecording = false;
 let mediaRecorder;
 let audioChunks = [];
 
-// Start or stop recording
+// Start or stop recording with improved UI feedback
 async function toggleRecording() {
+    const microphoneImg = document.getElementById("microphoneImg");
+    const statusMessage = document.getElementById("statusMessage");
+    
     if (!isRecording) {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/mp4' });
-            mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+            mediaRecorder = new MediaRecorder(stream);
+            
+            mediaRecorder.ondataavailable = event => {
+                if (event.data.size > 0) {
+                    audioChunks.push(event.data);
+                }
+            };
+            
             mediaRecorder.onstop = async () => {
                 const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
                 audioChunks = [];
                 await analyzeAudioWithGemini(audioBlob);
             };
+            
+            // Start recording with UI updates
             mediaRecorder.start();
             isRecording = true;
-            document.getElementById("microphoneImg").style.border = "3px solid red";
-            document.getElementById("statusMessage").innerText = "Đang ghi âm... Nhấn lại để dừng.";
+            microphoneImg.classList.add('recording');
+            statusMessage.innerHTML = '<i class="fas fa-circle text-danger me-2"></i>Đang ghi âm... Nhấn lại để dừng.';
+            
         } catch (error) {
-            console.error('Trình duyệt không có quyền truy cập microphone:', error);
-            document.getElementById("statusMessage").innerText = "Lỗi: Không thể truy cập microphone.";
+            console.error('Microphone access error:', error);
+            showError('Không thể truy cập microphone. Vui lòng kiểm tra quyền truy cập.');
         }
     } else {
+        // Stop recording with UI updates
         mediaRecorder.stop();
         isRecording = false;
-        document.getElementById("microphoneImg").style.border = "";
-        document.getElementById("statusMessage").innerText = "Đang phân tích...";
+        microphoneImg.classList.remove('recording');
+        statusMessage.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang phân tích...';
     }
 }
 
-// Send audio to server for analysis
+// Enhanced audio analysis function
 async function analyzeAudioWithGemini(audioBlob) {
     const formData = new FormData();
     formData.append("audio", audioBlob, "recording.webm");
@@ -44,33 +57,44 @@ async function analyzeAudioWithGemini(audioBlob) {
 
         if (response.ok) {
             const data = await response.json();
-            console.log("Gemini response:", data);
-
-            const cleanedResult = data.result.replace(/\*/g, "");
-            document.getElementById("statusMessage").innerText = "";
-
-            typeText("analysisResult", "Phân tích hoàn tất: " + cleanedResult);
-
-            if (data.stream_url) {
-                const audioPlayer = document.getElementById("audioPlayer");
-                audioPlayer.src = data.stream_url;
-                audioPlayer.play().catch((error) => {
-                    console.log("Autoplay was prevented:", error);
-                });
-            }
+            handleAnalysisSuccess(data);
         } else {
-            console.error("Lỗi khi gửi audio đến server:", response.statusText);
-            document.getElementById("statusMessage").innerText = "Lỗi: Không thể phân tích âm thanh.";
-            document.getElementById("analysisResult").innerHTML = "";
+            throw new Error(response.statusText);
         }
     } catch (error) {
-        console.error("Error:", error);
-        document.getElementById("statusMessage").innerText = "Lỗi: Không thể kết nối đến server.";
-        document.getElementById("analysisResult").innerHTML = "";
+        handleAnalysisError(error);
     }
 }
 
-// Create typing effect
+// Handle successful analysis
+function handleAnalysisSuccess(data) {
+    const cleanedResult = data.result.replace(/\*/g, "");
+    document.getElementById("statusMessage").innerHTML = 
+        '<i class="fas fa-check-circle text-success me-2"></i>Phân tích hoàn tất';
+
+    typeText("analysisResult", cleanedResult);
+
+    if (data.stream_url) {
+        const audioPlayer = document.getElementById("audioPlayer");
+        audioPlayer.src = data.stream_url;
+        audioPlayer.play().catch(console.error);
+    }
+}
+
+// Handle analysis error
+function handleAnalysisError(error) {
+    console.error("Analysis error:", error);
+    showError('Không thể phân tích âm thanh. Vui lòng thử lại.');
+}
+
+// Show error message
+function showError(message) {
+    const statusMessage = document.getElementById("statusMessage");
+    statusMessage.innerHTML = `<i class="fas fa-exclamation-circle text-danger me-2"></i>${message}`;
+    document.getElementById("analysisResult").innerHTML = "";
+}
+
+// Enhanced typing effect
 function typeText(elementId, text) {
     const element = document.getElementById(elementId);
     element.innerHTML = "";
@@ -80,7 +104,7 @@ function typeText(elementId, text) {
         if (index < text.length) {
             element.innerHTML += text.charAt(index);
             index++;
-            setTimeout(type, 50);
+            setTimeout(type, 30);
         }
     }
     

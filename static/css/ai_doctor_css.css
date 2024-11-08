@@ -12,41 +12,52 @@ body {
     min-height: 100vh;
     margin: 0;
     padding: 0;
+    overflow-x: hidden;
 }
 
 /* Container Styles */
 .container {
     max-width: 600px;
-    margin-top: 50px;
-    padding: 20px;
-    background-color: #fff;
-    border-radius: 10px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    margin: 50px auto;
+    padding: 30px;
+    background-color: white;
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     text-align: center;
     position: relative;
-    z-index: 1;
+    z-index: 2;
 }
 
 /* Microphone Styles */
+.microphone-container {
+    margin: 20px 0;
+}
+
 .microphone {
-    margin-top: 20px;
+    display: inline-block;
     cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.microphone:hover {
+    transform: scale(1.1);
 }
 
 .microphone img {
     width: 50px;
     height: auto;
-    cursor: pointer;
+    transition: all 0.3s ease;
 }
 
 /* Media Container Styles */
 .media-container {
     width: 150px;
     height: 150px;
+    margin: 0 auto 20px;
     position: relative;
-    margin: 0 auto;
     overflow: hidden;
     border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .media-content {
@@ -58,7 +69,6 @@ body {
     position: absolute;
     top: 0;
     left: 0;
-    border-radius: 50%;
 }
 
 .media-content.active {
@@ -128,4 +138,52 @@ body {
     .navbar-toggler-icon {
         background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%280, 123, 255, 1%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
     }
+}
+
+/* Content wrapper */
+.content-wrapper {
+    position: relative;
+    min-height: 100vh;
+    background-color: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 1;
+    padding: 20px 0;
+}
+
+/* Status message */
+.status-message {
+    margin-top: 15px;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+/* Analysis result */
+.analysis-result {
+    margin: 20px 0;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    min-height: 50px;
+}
+
+/* Audio player */
+.audio-player-container {
+    margin-top: 20px;
+}
+
+audio {
+    width: 100%;
+    border-radius: 30px;
+}
+
+/* Animation classes */
+.recording {
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
 }
