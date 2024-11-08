@@ -345,7 +345,7 @@ def analyze_audio():
 
         if analysis_result:
             # Tạo audio response từ ElevenLabs
-            audio_stream = stream_text_to_speech(analysis_result)
+            audio_stream = stream_text_to_speech(analysis_result, client)
             
             user = User.query.filter_by(username=session['username']).first()
             analysis = AiDoctor(
@@ -379,7 +379,7 @@ def stream_audio():
     analysis_result = request.args.get('result')
     
     if analysis_result:
-        audio_stream = stream_text_to_speech(analysis_result)
+        audio_stream = stream_text_to_speech(analysis_result, client)
 
         def generate_audio():
             for chunk in audio_stream:
