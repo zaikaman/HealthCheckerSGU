@@ -4,6 +4,7 @@ import os
 from utils.gemini_integration import analyze_text_with_image, analyze_audio_with_gemini
 from werkzeug.utils import secure_filename
 from elevenlabs.client import ElevenLabs
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -34,6 +35,31 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
 
+# Thêm vào phần đầu file, sau class User
+class FileAnalysis(db.Model):
+    __tablename__ = 'tbl_file_analysis'
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), nullable=False)
+    input = db.Column(db.Text, nullable=False)  # Lưu tên file
+    output = db.Column(db.Text, nullable=False)  # Lưu kết quả phân tích
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class HealthAnalysis(db.Model):
+    __tablename__ = 'tbl_health_analysis'
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), nullable=False)
+    input = db.Column(db.Text, nullable=False)  # Lưu tên file ảnh
+    output = db.Column(db.Text, nullable=False)  # Lưu kết quả phân tích
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class AiDoctor(db.Model):
+    __tablename__ = 'tbl_ai_doctor'
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), nullable=False)
+    input = db.Column(db.Text, nullable=False)  # Lưu file audio
+    output = db.Column(db.Text, nullable=False)  # Lưu kết quả phân tích
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
 # Tạo cơ sở dữ liệu nếu chưa tồn tại
 with app.app_context():
     db.create_all()
@@ -48,6 +74,10 @@ def file_analysis():
         if 'file' not in request.files:
             flash('No file part')
             return redirect(request.url)
+
+        if 'username' not in session:
+            flash('Vui lòng đăng nhập để sử dụng tính năng này')
+            return redirect(url_for('login'))
 
         file = request.files['file']
         if file.filename == '':
@@ -64,6 +94,16 @@ def file_analysis():
             # Phân tích với Gemini AI
             text_prompt = "Hãy phân tích chi tiết hồ sơ y tế hoặc đơn thuốc này và đưa ra những thông tin quan trọng."
             extracted_entities = analyze_text_with_image(text_prompt, filepath)
+            
+            # Lưu vào database
+            user = User.query.filter_by(username=session['username']).first()
+            analysis = FileAnalysis(
+                email=user.email,
+                input=file.filename,
+                output=extracted_entities
+            )
+            db.session.add(analysis)
+            db.session.commit()
             
             # Xóa tập tin sau khi xử lý
             os.remove(filepath)
@@ -117,6 +157,10 @@ def health_analysis():
             flash('No file part')
             return redirect(request.url)
 
+        if 'username' not in session:
+            flash('Vui lòng đăng nhập để sử dụng tính năng này')
+            return redirect(url_for('login'))
+
         file = request.files['file']
         if file.filename == '':
             flash('No selected file')
@@ -127,8 +171,18 @@ def health_analysis():
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(file_path)
 
-            text_prompt = "Hãy phân tích tình trạng thể chất của người trong bức ảnh này. Xin hãy đánh giá các yếu tố như thể trạng tổng thể, chỉ số cơ thể có thể suy đoán (như vóc dáng, sức mạnh cơ bắp, mức độ linh hoạt), khả năng hoạt động thể chất, và tiềm năng thực hiện các loại hình thể dục khác nhau. Nếu có thể, hãy đưa ra những nhận xét tinh tế và động viên để giúp người này nhận thức rõ hơn về sức khỏe của mình, cùng một số lời khuyên hữu ích để phát triển lối sống lành mạnh."
+            text_prompt = "Hãy phân tích tình trạng thể chất của người trong bức ảnh này..."
             result = analyze_text_with_image(text_prompt, file_path)
+
+            # Lưu vào database
+            user = User.query.filter_by(username=session['username']).first()
+            analysis = HealthAnalysis(
+                email=user.email,
+                input=file.filename,
+                output=result
+            )
+            db.session.add(analysis)
+            db.session.commit()
 
             os.remove(file_path)
             return render_template('health_analysis.html', health_analysis_result=result)
@@ -153,6 +207,9 @@ def analyze_audio():
     if 'audio' not in request.files:
         return jsonify({"result": "Lỗi: Không tìm thấy tệp âm thanh."}), 400
 
+    if 'username' not in session:
+        return jsonify({"result": "Vui lòng đăng nhập để sử dụng tính năng này"}), 401
+
     audio_file = request.files['audio']
     audio_file_path = f"/tmp/{audio_file.filename}"
     audio_file.save(audio_file_path)
@@ -160,6 +217,16 @@ def analyze_audio():
     analysis_result = analyze_audio_with_gemini(audio_file_path)
 
     if analysis_result:
+        # Lưu vào database
+        user = User.query.filter_by(username=session['username']).first()
+        analysis = AiDoctor(
+            email=user.email,
+            input=audio_file.filename,
+            output=analysis_result
+        )
+        db.session.add(analysis)
+        db.session.commit()
+
         audio_stream_url = url_for('stream_audio', result=analysis_result)
         return jsonify({"result": analysis_result, "audio_url": audio_stream_url})
     else:
