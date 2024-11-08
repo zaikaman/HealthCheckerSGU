@@ -65,22 +65,29 @@ class AiDoctor(db.Model):
 with app.app_context():
     db.create_all()
 
-# Cấu hình Cloudinary - đặt ngay sau khi khởi tạo app
+# Cấu hình Cloudinary với SHA-256
 config( 
     cloud_name = "ddrfu9ftt",
     api_key = "419138417289347",
-    api_secret = "419138417289347"
+    api_secret = "419138417289347",
+    secure = True,
+    signature_algorithm = "sha256"
 )
 
-# Hàm upload chung cho tất cả các route
+# Hàm upload chung
 def upload_to_cloudinary(file, folder):
     try:
-        # Đơn giản hóa các tham số upload
+        # Đọc file vào memory
+        file_content = file.read()
+        file.seek(0)  # Reset con trỏ file để có thể đọc lại
+        
+        # Upload với các tham số cơ bản
         result = uploader.upload(
-            file,
-            folder=f"healthchecker/{folder}"
+            file_content,
+            folder=f"healthchecker/{folder}",
+            resource_type="auto"
         )
-        return result['secure_url']
+        return result.get('secure_url')
     except Exception as e:
         print(f"Cloudinary upload error: {str(e)}")
         return None
@@ -97,27 +104,33 @@ def file_analysis():
             
         file = request.files['file']
         if file and allowed_file(file.filename):
-            # Upload file
-            file_url = upload_to_cloudinary(file, "medical")
-            if not file_url:
-                return redirect(request.url)
+            try:
+                # Upload file
+                file_url = upload_to_cloudinary(file, "medical")
+                if not file_url:
+                    flash('Upload failed')
+                    return redirect(request.url)
+                    
+                # Phân tích và lưu database như cũ
+                text_prompt = "Analyze this medical record or prescription and extract key information in Vietnamese"
+                extracted_entities = analyze_text_with_image(text_prompt, file)
                 
-            # Phân tích với Gemini
-            text_prompt = "Analyze this medical record or prescription and extract key information in Vietnamese"
-            extracted_entities = analyze_text_with_image(text_prompt, file)
-            
-            # Lưu vào database
-            if 'username' in session:
-                user = User.query.filter_by(username=session['username']).first()
-                analysis = FileAnalysis(
-                    email=user.email,
-                    input=file_url,
-                    output=extracted_entities
-                )
-                db.session.add(analysis)
-                db.session.commit()
-            
-            return render_template('file_analysis.html', extracted_entities=extracted_entities)
+                if 'username' in session:
+                    user = User.query.filter_by(username=session['username']).first()
+                    analysis = FileAnalysis(
+                        email=user.email,
+                        input=file_url,
+                        output=extracted_entities
+                    )
+                    db.session.add(analysis)
+                    db.session.commit()
+                
+                return render_template('file_analysis.html', extracted_entities=extracted_entities)
+                
+            except Exception as e:
+                print(f"Error: {str(e)}")
+                flash('An error occurred')
+                return redirect(request.url)
                 
     return render_template('file_analysis.html')
 
