@@ -111,8 +111,17 @@
                             <li><a class="dropdown-item" href="{{ url_for('file_analysis') }}">Phân Tích Hồ Sơ Y Tế</a></li>
                             <li><a class="dropdown-item" href="{{ url_for('health_analysis') }}">Phân Tích Thể Trạng</a></li>
                             <li><a class="dropdown-item" href="{{ url_for('ai_doctor') }}">Bác Sĩ AI</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('history') }}">Lịch Sử Phân Tích</a></li>
                         </ul>
                     </li>
+                    {% if session.username %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('history') }}">
+                            <i class="fas fa-history"></i> Lịch Sử Phân Tích
+                        </a>
+                    </li>
+                    {% endif %}
                 </ul>
                 <ul class="navbar-nav">
                     {% if session.username %}
@@ -162,6 +171,14 @@
                     <h3>Bác Sĩ AI</h3>
                     <p>Tư vấn sức khỏe trực tiếp với AI thông minh, hỗ trợ 24/7</p>
                     <a href="{{ url_for('ai_doctor') }}" class="btn btn-primary">Bắt đầu</a>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="feature-card text-center">
+                    <div class="feature-icon">📊</div>
+                    <h3>Lịch Sử Phân Tích</h3>
+                    <p>Xem lại toàn bộ lịch sử phân tích và tư vấn của bạn</p>
+                    <a href="{{ url_for('history') }}" class="btn btn-primary">Xem Lịch Sử</a>
                 </div>
             </div>
         </div>
