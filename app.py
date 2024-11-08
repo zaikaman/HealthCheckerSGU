@@ -222,9 +222,13 @@ def health_analysis():
                     os.remove(filepath)
                 flash('Có lỗi xảy ra khi xử lý file')
                 return redirect(request.url)
+    
+    # Thêm return cho phương thức GET
+    return render_template('health_analysis.html')
 
 @app.route('/ai_doctor')
 def ai_doctor():
+    # Return cho route ai_doctor
     return render_template('ai_doctor.html')
 
 def stream_text_to_speech(text):
