@@ -77,19 +77,27 @@ config(
 # Hàm upload chung
 def upload_to_cloudinary(file, folder):
     try:
-        # Đọc file vào memory
-        file_content = file.read()
-        file.seek(0)  # Reset con trỏ file để có thể đọc lại
+        # Lưu file tạm thời
+        filename = secure_filename(file.filename)
+        temp_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(temp_path)
         
-        # Upload với các tham số cơ bản
+        # Upload file từ path
         result = uploader.upload(
-            file_content,
+            temp_path,
             folder=f"healthchecker/{folder}",
             resource_type="auto"
         )
+        
+        # Xóa file tạm
+        os.remove(temp_path)
+        
         return result.get('secure_url')
     except Exception as e:
         print(f"Cloudinary upload error: {str(e)}")
+        # Đảm bảo xóa file tạm nếu có lỗi
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
         return None
 
 @app.route('/')
