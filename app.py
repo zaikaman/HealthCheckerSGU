@@ -109,12 +109,15 @@ cloudinary.config(
 )
 
 # Thêm cấu hình email sau app = Flask(__name__)
-app.config['MAIL_SERVER'] = 'imap.gmail.com'  # Thay đổi server thành IMAP
-app.config['MAIL_PORT'] = 993  # Port cho IMAP SSL
-app.config['MAIL_USE_SSL'] = True  # Sử dụng SSL thay vì TLS
-app.config['MAIL_USE_TLS'] = False
-app.config['MAIL_USERNAME'] = 'thinhgpt1706@gmail.com'  # Thay bằng email của bạn
-app.config['MAIL_PASSWORD'] = 'xgxn kjcv haqf sjxz'  # Thay bằng app password từ Google
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False
+app.config['MAIL_USERNAME'] = 'thinhgpt1706@gmail.com'  # Email của bạn
+app.config['MAIL_PASSWORD'] = 'xgxn kjcv haqf sjxz'    # App password
+
+# Khởi tạo Mail
+mail = Mail(app)
 
 # Thêm logging để debug
 logging.basicConfig(level=logging.DEBUG)
@@ -129,40 +132,25 @@ def generate_confirmation_token(email):
 
 def send_confirmation_email(to_email, token):
     try:
-        # Kết nối tới IMAP server
-        imap = imaplib.IMAP4_SSL(app.config['MAIL_SERVER'])
-        imap.login(app.config['MAIL_USERNAME'], app.config['MAIL_PASSWORD'])
-
-        # Tạo message
-        msg = MIMEMultipart()
-        msg['From'] = app.config['MAIL_USERNAME']
-        msg['To'] = to_email
-        msg['Subject'] = 'Xác nhận tài khoản'
-
-        # Tạo nội dung email
+        # Tạo URL xác nhận
         confirm_url = url_for('confirm_email', token=token, _external=True)
-        body = f'''Để xác nhận tài khoản của bạn, vui lòng click vào link sau:
+        
+        # Tạo message
+        msg = Message('Xác nhận tài khoản',
+                     sender=app.config['MAIL_USERNAME'],
+                     recipients=[to_email])
+        
+        # Nội dung email
+        msg.body = f'''Để xác nhận tài khoản của bạn, vui lòng click vào link sau:
 {confirm_url}
 
 Link này sẽ hết hạn sau 24 giờ.
 '''
-        msg.attach(MIMEText(body, 'plain'))
-
-        # Chuyển message thành string
-        email_string = msg.as_string()
-
-        try:
-            # Lưu email vào thư mục Sent
-            imap.append('Sent', '\\Seen', imaplib.Time2Internaldate(time.time()), email_string.encode('utf-8'))
-            logger.info(f"Email sent successfully to {to_email}")
-            
-            # Đóng kết nối
-            imap.logout()
-            return True
-        except Exception as e:
-            logger.error(f"Error appending email: {str(e)}")
-            return False
-            
+        # Gửi email
+        mail.send(msg)
+        logger.info(f"Email sent successfully to {to_email}")
+        return True
+        
     except Exception as e:
         logger.error(f"Error sending email: {str(e)}")
         return False
