@@ -55,12 +55,14 @@ document.addEventListener('DOMContentLoaded', function() {
         scrollTimeout = window.requestAnimationFrame(function() {
             const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
             
-            if (scrollTop > lastScrollTop && scrollTop > 100) {
-                // Scrolling down
-                navbar.style.transform = 'translateY(-100%)';
-            } else {
-                // Scrolling up
-                navbar.style.transform = 'translateY(0)';
+            if (!document.querySelector('.dropdown-menu.show')) {
+                if (scrollTop > lastScrollTop && scrollTop > 100) {
+                    // Scrolling down
+                    navbar.style.transform = 'translateY(-100%)';
+                } else {
+                    // Scrolling up
+                    navbar.style.transform = 'translateY(0)';
+                }
             }
             
             if (scrollTop === 0) {
@@ -70,6 +72,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             lastScrollTop = scrollTop;
+        });
+    });
+
+    // Thêm xử lý cho dropdown menu
+    document.querySelectorAll('.dropdown').forEach(dropdown => {
+        dropdown.addEventListener('show.bs.dropdown', function () {
+            navbar.style.transform = 'translateY(0)'; // Hiển thị navbar khi dropdown được mở
         });
     });
 
