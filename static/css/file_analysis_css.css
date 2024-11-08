@@ -1,0 +1,120 @@
+body {
+    background: url('../images/background.jpg') no-repeat center center fixed;
+    background-size: cover;
+    font-family: 'Roboto', sans-serif;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 600px;
+    margin-top: 50px;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    position: relative;
+    z-index: 1;
+}
+
+.btn-upload {
+    background-color: #007bff;
+    color: white;
+    border: none;
+}
+
+.btn-upload:hover {
+    background-color: #0056b3;
+}
+
+h1 {
+    font-size: 1.75rem;
+    color: #333;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* Result Container Styles */
+.result-container {
+    margin-top: 30px;
+}
+
+.result-container h2 {
+    font-size: 1.25rem;
+    color: #007bff;
+}
+
+.result-container pre {
+    background-color: #f0f0f0;
+    padding: 15px;
+    border-radius: 5px;
+    white-space: pre-wrap;
+    font-size: 1rem;
+    color: #333;
+}
+
+/* Navbar Styles */
+.navbar {
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+    color: #007bff;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+}
+
+.navbar-brand img {
+    height: 30px;
+    margin-left: 10px;
+}
+
+.navbar-nav .nav-link {
+    color: #007bff;
+}
+
+.btn-outline-light {
+    color: #fff;
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.btn-outline-light:hover {
+    color: #007bff;
+    background-color: #fff;
+}
+
+/* Responsive Styles */
+@media (max-width: 991px) {
+    .navbar-collapse {
+        background-color: white;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-top: 0.5rem;
+    }
+
+    .navbar-nav {
+        width: 100%;
+    }
+
+    .nav-item {
+        margin: 0.5rem 0;
+    }
+
+    .dropdown-menu {
+        background-color: #ffffff;
+        border: none;
+        width: 100%;
+    }
+
+    .navbar-toggler {
+        border-color: #007bff;
+    }
+
+    .navbar-toggler-icon {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%280, 123, 255, 1%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+    }
+}
