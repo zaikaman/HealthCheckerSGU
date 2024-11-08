@@ -1,0 +1,2 @@
+echo "uploads/*" >> .gitignore
+echo "!uploads/.gitkeep" >> .gitignore

@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, Response
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, Response, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 import os
 from utils.gemini_integration import analyze_text_with_image, analyze_audio_with_gemini
@@ -85,28 +85,29 @@ def file_analysis():
             return redirect(request.url)
         
         if file and allowed_file(file.filename):
+            # Tạo tên file với timestamp
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            filename = f"{secure_filename(file.filename.rsplit('.', 1)[0])}_{timestamp}.{file.filename.rsplit('.', 1)[1]}"
+            
             if not os.path.exists(app.config['UPLOAD_FOLDER']):
                 os.makedirs(app.config['UPLOAD_FOLDER'])
 
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(file.filename))
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(filepath)
             
             # Phân tích với Gemini AI
             text_prompt = "Hãy phân tích chi tiết hồ sơ y tế hoặc đơn thuốc này và đưa ra những thông tin quan trọng."
             extracted_entities = analyze_text_with_image(text_prompt, filepath)
             
-            # Lưu vào database
+            # Lưu vào database với tên file mới
             user = User.query.filter_by(username=session['username']).first()
             analysis = FileAnalysis(
                 email=user.email,
-                input=file.filename,
+                input=filename,  # Lưu tên file với timestamp
                 output=extracted_entities
             )
             db.session.add(analysis)
             db.session.commit()
-            
-            # Xóa tập tin sau khi xử lý
-            os.remove(filepath)
             
             return render_template('file_analysis.html', extracted_entities=extracted_entities)
     
@@ -167,24 +168,25 @@ def health_analysis():
             return redirect(request.url)
 
         if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(file_path)
+            # Tạo tên file với timestamp
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            filename = f"{secure_filename(file.filename.rsplit('.', 1)[0])}_{timestamp}.{file.filename.rsplit('.', 1)[1]}"
+            
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(filepath)
 
             text_prompt = "Hãy phân tích tình trạng thể chất của người trong bức ảnh này một cách khách quan và chuyên nghiệp. Hãy đưa ra nhận xét về các yếu tố như: tư thế, dáng người, cân nặng ước tính, và các dấu hiệu thể chất có thể quan sát được. Đưa ra những gợi ý và lời khuyên hữu ích để cải thiện sức khỏe nếu cần thiết. Hãy giữ giọng điệu tích cực và mang tính xây dựng."
-            result = analyze_text_with_image(text_prompt, file_path)
+            result = analyze_text_with_image(text_prompt, filepath)
 
-            # Lưu vào database
             user = User.query.filter_by(username=session['username']).first()
             analysis = HealthAnalysis(
                 email=user.email,
-                input=file.filename,
+                input=filename,  # Lưu tên file với timestamp
                 output=result
             )
             db.session.add(analysis)
             db.session.commit()
 
-            os.remove(file_path)
             return render_template('health_analysis.html', health_analysis_result=result)
 
     return render_template('health_analysis.html')
@@ -207,21 +209,20 @@ def analyze_audio():
     if 'audio' not in request.files:
         return jsonify({"result": "Lỗi: Không tìm thấy tệp âm thanh."}), 400
 
-    if 'username' not in session:
-        return jsonify({"result": "Vui lòng đăng nhập để sử dụng tính năng này"}), 401
-
     audio_file = request.files['audio']
-    audio_file_path = f"/tmp/{audio_file.filename}"
-    audio_file.save(audio_file_path)
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    filename = f"audio_{timestamp}.webm"
+    
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    audio_file.save(filepath)
 
-    analysis_result = analyze_audio_with_gemini(audio_file_path)
+    analysis_result = analyze_audio_with_gemini(filepath)
 
     if analysis_result:
-        # Lưu vào database
         user = User.query.filter_by(username=session['username']).first()
         analysis = AiDoctor(
             email=user.email,
-            input=audio_file.filename,
+            input=filename,  # Lưu tên file với timestamp
             output=analysis_result
         )
         db.session.add(analysis)
@@ -266,6 +267,11 @@ def history():
                          ai_doctor_analyses=ai_doctor_analyses,
                          timedelta=timedelta,
                          session=session)
+
+# Thêm route để phục vụ các file tải lên
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 if __name__ == '__main__':
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
