@@ -17,6 +17,7 @@ from email.mime.multipart import MIMEMultipart
 import time
 import re
 from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy import inspect
 
 app = Flask(__name__)
 
@@ -73,9 +74,31 @@ class AiDoctor(db.Model):
     output = db.Column(db.Text, nullable=False)  # Lưu kết quả phân tích
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+def add_column_if_not_exists():
+    try:
+        # Lấy inspector từ engine của database
+        inspector = inspect(db.engine)
+        
+        # Lấy danh sách các cột hiện có trong bảng user
+        columns = [col['name'] for col in inspector.get_columns('user')]
+        
+        # Kiểm tra nếu cột verified chưa tồn tại
+        if 'verified' not in columns:
+            # Tạo và thực thi câu lệnh ALTER TABLE
+            with db.engine.connect() as conn:
+                conn.execute('ALTER TABLE user ADD COLUMN verified BOOLEAN DEFAULT FALSE')
+                conn.commit()
+            print("Đã thêm cột 'verified' vào bảng user")
+        else:
+            print("Cột 'verified' đã tồn tại trong bảng user")
+            
+    except Exception as e:
+        print(f"Lỗi khi kiểm tra/thêm cột: {str(e)}")
+
 # Tạo cơ sở dữ liệu nếu chưa tồn tại
 with app.app_context():
     db.create_all()
+    add_column_if_not_exists()
 
 # Thêm cấu hình Cloudinary (thay thế các giá trị bằng thông tin từ dashboard của bạn)
 cloudinary.config(
@@ -281,7 +304,7 @@ def confirm_email(token):
         if user:
             user.verified = True
             db.session.commit()
-            flash('Tài khoản của bạn đã được xác nhận! Bạn có thể đăng nhập ngay bây giờ.', 'success')
+            flash('Tài khoản của b���n đã được xác nhận! Bạn có thể đăng nhập ngay bây giờ.', 'success')
         else:
             flash('Link xác nhận không hợp lệ.', 'danger')
             
@@ -318,7 +341,7 @@ def health_analysis():
                     folder="health_checker")
                 file_url = upload_result['secure_url']
 
-                # Phân tích với AI (sử dụng file local)
+                # Phân tích v���i AI (sử dụng file local)
                 text_prompt = "Hãy phân tích tình trạng thể chất của người trong bức ảnh này một cách khách quan và chuyên nghiệp. Hãy đưa ra nhận xét về các yếu tố như: tư thế, dáng người, cân nặng ước tính, và các dấu hiệu thể chất có thể quan sát được. Đưa ra những gợi ý và lời khuyên hữu ích để cải thiện sức khỏe nếu cần thiết. Hãy giữ giọng điệu tích cực và mang tính xây dựng."
                 result = analyze_text_with_image(text_prompt, filepath)
 
@@ -454,6 +477,27 @@ def history():
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+def add_column_if_not_exists():
+    try:
+        # Lấy inspector từ engine của database
+        inspector = inspect(db.engine)
+        
+        # Lấy danh sách các cột hiện có trong bảng user
+        columns = [col['name'] for col in inspector.get_columns('user')]
+        
+        # Kiểm tra nếu cột verified chưa tồn tại
+        if 'verified' not in columns:
+            # Tạo và thực thi câu lệnh ALTER TABLE
+            with db.engine.connect() as conn:
+                conn.execute('ALTER TABLE user ADD COLUMN verified BOOLEAN DEFAULT FALSE')
+                conn.commit()
+            print("Đã thêm cột 'verified' vào bảng user")
+        else:
+            print("Cột 'verified' đã tồn tại trong bảng user")
+            
+    except Exception as e:
+        print(f"Lỗi khi kiểm tra/thêm cột: {str(e)}")
 
 if __name__ == '__main__':
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
