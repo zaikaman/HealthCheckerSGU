@@ -19,6 +19,10 @@ import re
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import inspect
 import logging
+from utils.email_utils import generate_confirmation_token, send_confirmation_email
+from utils.file_utils import allowed_file, add_column_if_not_exists
+from utils.audio_utils import stream_text_to_speech
+from utils.validation_utils import is_valid_email
 
 app = Flask(__name__)
 
@@ -75,27 +79,6 @@ class AiDoctor(db.Model):
     output = db.Column(db.Text, nullable=False)  # Lưu kết quả phân tích
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-def add_column_if_not_exists():
-    try:
-        # Lấy inspector từ engine của database
-        inspector = inspect(db.engine)
-        
-        # Lấy danh sách các cột hiện có trong bảng user
-        columns = [col['name'] for col in inspector.get_columns('user')]
-        
-        # Kiểm tra nếu cột verified chưa tồn tại
-        if 'verified' not in columns:
-            # Tạo và thực thi câu lệnh ALTER TABLE
-            with db.engine.connect() as conn:
-                conn.execute('ALTER TABLE user ADD COLUMN verified BOOLEAN DEFAULT FALSE')
-                conn.commit()
-            print("Đã thêm cột 'verified' vào bảng user")
-        else:
-            print("Cột 'verified' đã tồn tại trong bảng user")
-            
-    except Exception as e:
-        print(f"Lỗi khi kiểm tra/thêm cột: {str(e)}")
-
 # Tạo cơ sở dữ liệu nếu chưa tồn tại
 with app.app_context():
     db.create_all()
@@ -122,85 +105,6 @@ mail = Mail(app)
 # Thêm logging để debug
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-
-def generate_confirmation_token(email):
-    return jwt.encode(
-        {'email': email, 'exp': datetime.utcnow() + timedelta(hours=24)},
-        app.config['SECRET_KEY'],
-        algorithm='HS256'
-    )
-
-def send_confirmation_email(to_email, token):
-    try:
-        confirm_url = url_for('confirm_email', token=token, _external=True)
-        
-        msg = Message('Xác nhận tài khoản',
-                     sender=app.config['MAIL_USERNAME'],
-                     recipients=[to_email])
-        
-        # HTML template với CSS inline
-        msg.html = f'''
-        <div style="background-color: #f6f6f6; padding: 20px;">
-            <div style="max-width: 600px; margin: 0 auto; background-color: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <h1 style="color: #1a73e8; margin: 0; font-family: Arial, sans-serif;">Xác nhận tài khoản</h1>
-                </div>
-                
-                <div style="color: #444; font-family: Arial, sans-serif; font-size: 16px; line-height: 1.6;">
-                    <p>Xin chào,</p>
-                    <p>Cảm ơn bạn đã đăng ký tài khoản. Để hoàn tất quá trình đăng ký, vui lòng click vào nút bên dưới:</p>
-                </div>
-                
-                <div style="text-align: center; margin: 30px 0;">
-                    <a href="{confirm_url}" 
-                       style="background-color: #1a73e8; 
-                              color: white; 
-                              padding: 12px 30px; 
-                              text-decoration: none; 
-                              border-radius: 5px; 
-                              font-family: Arial, sans-serif;
-                              font-weight: bold;
-                              display: inline-block;">
-                        Xác nhận tài khoản
-                    </a>
-                </div>
-                
-                <div style="color: #666; font-family: Arial, sans-serif; font-size: 14px; line-height: 1.5;">
-                    <p>Hoặc copy và paste đường link sau vào trình duyệt của bạn:</p>
-                    <p style="color: #1a73e8; word-break: break-all;">{confirm_url}</p>
-                    <p>Link này sẽ hết hạn sau 24 giờ.</p>
-                </div>
-                
-                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-family: Arial, sans-serif; font-size: 12px; text-align: center;">
-                    <p>Email này được gửi tự động, vui lòng không trả lời.</p>
-                    <p>© 2024 Health Checker. All rights reserved.</p>
-                </div>
-            </div>
-        </div>
-        '''
-        
-        # Plain text version cho các email client không hỗ trợ HTML
-        msg.body = f'''
-        Xác nhận tài khoản
-
-        Để xác nhận tài khoản của bạn, vui lòng truy cập link sau:
-        {confirm_url}
-
-        Link này sẽ hết hạn sau 24 giờ.
-        '''
-        
-        mail.send(msg)
-        logger.info(f"Email sent successfully to {to_email}")
-        return True
-        
-    except Exception as e:
-        logger.error(f"Error sending email: {str(e)}")
-        return False
-
-# Hàm validate email
-def is_valid_email(email):
-    pattern = r'^[\w\.-]+@[\w\.-]+\.\w+$'
-    return re.match(pattern, email) is not None
 
 @app.route('/')
 def index():
@@ -408,22 +312,13 @@ def health_analysis():
                 flash('Có lỗi xảy ra khi xử lý file')
                 return redirect(request.url)
     
-    # Thêm return cho phương thức GET
+    # Thêm return cho phư��ng thức GET
     return render_template('health_analysis.html')
 
 @app.route('/ai_doctor')
 def ai_doctor():
     # Return cho route ai_doctor
     return render_template('ai_doctor.html')
-
-def stream_text_to_speech(text):
-    audio_stream = client.generate(
-        text=text,
-        voice="Eric",
-        model="eleven_turbo_v2_5",
-        stream=True
-    )
-    return audio_stream
 
 @app.route('/analyze_audio', methods=['POST'])
 def analyze_audio():
@@ -518,27 +413,6 @@ def history():
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
-
-def add_column_if_not_exists():
-    try:
-        # Lấy inspector từ engine của database
-        inspector = inspect(db.engine)
-        
-        # Lấy danh sách các cột hiện có trong bảng user
-        columns = [col['name'] for col in inspector.get_columns('user')]
-        
-        # Kiểm tra nếu cột verified chưa tồn tại
-        if 'verified' not in columns:
-            # Tạo và thực thi câu lệnh ALTER TABLE
-            with db.engine.connect() as conn:
-                conn.execute('ALTER TABLE user ADD COLUMN verified BOOLEAN DEFAULT FALSE')
-                conn.commit()
-            print("Đã thêm cột 'verified' vào bảng user")
-        else:
-            print("Cột 'verified' đã tồn tại trong bảng user")
-            
-    except Exception as e:
-        print(f"Lỗi khi kiểm tra/thêm cột: {str(e)}")
 
 if __name__ == '__main__':
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
