@@ -20,8 +20,11 @@ client = ElevenLabs(api_key="sk_0282f7067c9709491cbe2e584d4d993a0cb07b2a1fe0aa42
 analysis_result = ""
 
 # Cấu hình thư mục tải lên
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
-app.config['UPLOAD_FOLDER'] = 'uploads'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg','webp'}
+
+# Đặt tên cho thư mục tải lên
+UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Kiểm tra đuôi file
 def allowed_file(filename):
@@ -76,27 +79,36 @@ config(
 
 # Hàm upload chung
 def upload_to_cloudinary(file, folder):
+    if not file:
+        return None
+        
     try:
-        # Lưu file tạm thời
+        # Tạo tên file an toàn
         filename = secure_filename(file.filename)
         temp_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        
+        # Lưu file tạm và reset con trỏ file
         file.save(temp_path)
+        file.seek(0)  # Reset file pointer for later use
         
-        # Upload file từ path
-        result = uploader.upload(
-            temp_path,
-            folder=f"healthchecker/{folder}",
-            resource_type="auto"
-        )
-        
+        # Upload lên Cloudinary
+        with open(temp_path, 'rb') as upload_file:
+            result = uploader.upload(
+                upload_file,
+                folder=f"healthchecker/{folder}",
+                resource_type="auto"
+            )
+            
         # Xóa file tạm
-        os.remove(temp_path)
-        
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+            
         return result.get('secure_url')
+        
     except Exception as e:
         print(f"Cloudinary upload error: {str(e)}")
-        # Đảm bảo xóa file tạm nếu có lỗi
-        if os.path.exists(temp_path):
+        # Cleanup nếu có lỗi
+        if 'temp_path' in locals() and os.path.exists(temp_path):
             os.remove(temp_path)
         return None
 
@@ -290,7 +302,7 @@ def history():
                          ai_doctor_analyses=ai_doctor_analyses)
 
 if __name__ == '__main__':
-    if not os.path.exists(app.config['UPLOAD_FOLDER']):
-        os.makedirs(app.config['UPLOAD_FOLDER'])
+    if not os.path.exists(UPLOAD_FOLDER):
+        os.makedirs(UPLOAD_FOLDER)
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port, debug=True)
