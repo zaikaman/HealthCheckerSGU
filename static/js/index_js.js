@@ -26,35 +26,51 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Hero section parallax effect
     const heroSection = document.querySelector('.hero-section');
+    let ticking = false;
+
     window.addEventListener('scroll', function() {
-        if (heroSection) {
-            const scrolled = window.pageYOffset;
-            heroSection.style.backgroundPositionY = scrolled * 0.5 + 'px';
+        if (!ticking) {
+            window.requestAnimationFrame(function() {
+                if (heroSection) {
+                    const scrolled = window.pageYOffset;
+                    const translateY = Math.max(0, scrolled * 0.5);
+                    heroSection.style.transform = `translate3d(0, ${translateY}px, 0)`;
+                }
+                ticking = false;
+            });
+            ticking = true;
         }
     });
 
     // Navbar scroll behavior
     const navbar = document.querySelector('.navbar');
     let lastScrollTop = 0;
+    let scrollTimeout;
 
     window.addEventListener('scroll', function() {
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        
-        if (scrollTop > lastScrollTop) {
-            // Scrolling down
-            navbar.style.transform = 'translateY(-100%)';
-        } else {
-            // Scrolling up
-            navbar.style.transform = 'translateY(0)';
+        if (scrollTimeout) {
+            window.cancelAnimationFrame(scrollTimeout);
         }
-        
-        if (scrollTop === 0) {
-            navbar.classList.remove('navbar-scrolled');
-        } else {
-            navbar.classList.add('navbar-scrolled');
-        }
-        
-        lastScrollTop = scrollTop;
+
+        scrollTimeout = window.requestAnimationFrame(function() {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            
+            if (scrollTop > lastScrollTop && scrollTop > 100) {
+                // Scrolling down
+                navbar.style.transform = 'translateY(-100%)';
+            } else {
+                // Scrolling up
+                navbar.style.transform = 'translateY(0)';
+            }
+            
+            if (scrollTop === 0) {
+                navbar.classList.remove('navbar-scrolled');
+            } else {
+                navbar.classList.add('navbar-scrolled');
+            }
+            
+            lastScrollTop = scrollTop;
+        });
     });
 
     // Initialize tooltips
