@@ -19,12 +19,7 @@ client = ElevenLabs(api_key="sk_0282f7067c9709491cbe2e584d4d993a0cb07b2a1fe0aa42
 analysis_result = ""
 
 # Cấu hình thư mục tải lên
-ALLOWED_EXTENSIONS = {
-    # Images
-    'png', 'jpg', 'jpeg', 'gif',
-    # Audio
-    'webm', 'mp3', 'wav', 'ogg'
-}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
 app.config['UPLOAD_FOLDER'] = 'uploads'
 
 # Kiểm tra đuôi file
@@ -64,14 +59,6 @@ class AiDoctor(db.Model):
     input = db.Column(db.Text, nullable=False)  # Lưu file audio
     output = db.Column(db.Text, nullable=False)  # Lưu kết quả phân tích
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-class Analysis(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    input = db.Column(db.String(255))  # Tên file
-    output = db.Column(db.Text)
-    type = db.Column(db.String(50))  # 'file', 'health', 'doctor'
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
 # Tạo cơ sở dữ liệu nếu chưa tồn tại
 with app.app_context():
@@ -277,81 +264,6 @@ def history():
                          file_analyses=file_analyses,
                          health_analyses=health_analyses,
                          ai_doctor_analyses=ai_doctor_analyses)
-
-@app.route('/static/uploads/<filename>')
-def uploaded_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
-
-# Thêm các hàm xử lý upload chung
-def handle_file_upload(file, file_type):
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        # Tạo tên file unique để tránh trùng lặp
-        unique_filename = f"{file_type}-{datetime.now().strftime('%Y%m%d-%H%M%S')}-{filename}"
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
-        file.save(file_path)
-        return unique_filename
-    return None
-
-@app.route('/file_analysis', methods=['POST'])
-def file_analysis():
-    if 'file' not in request.files:
-        return redirect(request.url)
-    file = request.files['file']
-    
-    filename = handle_file_upload(file, 'medical')
-    if filename:
-        # Xử lý phân tích và lưu kết quả
-        result = process_medical_file(file_path)  # Hàm xử lý của bạn
-        analysis = Analysis(
-            input=filename,
-            output=result,
-            type='file',
-            user_id=current_user.id
-        )
-        db.session.add(analysis)
-        db.session.commit()
-    return redirect(url_for('file_analysis'))
-
-@app.route('/health_analysis', methods=['POST'])
-def health_analysis():
-    if 'file' not in request.files:
-        return redirect(request.url)
-    file = request.files['file']
-    
-    filename = handle_file_upload(file, 'health')
-    if filename:
-        # Xử lý phân tích và lưu kết quả
-        result = process_health_image(file_path)  # Hàm xử lý của bạn
-        analysis = Analysis(
-            input=filename,
-            output=result,
-            type='health',
-            user_id=current_user.id
-        )
-        db.session.add(analysis)
-        db.session.commit()
-    return redirect(url_for('health_analysis'))
-
-@app.route('/ai_doctor', methods=['POST'])
-def ai_doctor():
-    if 'audio' not in request.files:
-        return redirect(request.url)
-    file = request.files['audio']
-    
-    filename = handle_file_upload(file, 'audio')
-    if filename:
-        # Xử lý phân tích và lưu kết quả
-        result = process_audio(file_path)  # Hàm xử lý của bạn
-        analysis = Analysis(
-            input=filename,
-            output=result,
-            type='doctor',
-            user_id=current_user.id
-        )
-        db.session.add(analysis)
-        db.session.commit()
-    return redirect(url_for('ai_doctor'))
 
 if __name__ == '__main__':
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
