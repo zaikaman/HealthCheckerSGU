@@ -70,16 +70,24 @@
         .history-file {
             background-color: #e9ecef;
             padding: 8px 12px;
-            border-radius: 5px;
-            margin-bottom: 12px;
+            border-radius: 6px;
+            margin: 10px 0;
             font-size: 0.9rem;
+            color: #495057;
+        }
+        .history-file i {
+            color: #6c757d;
+            margin-right: 6px;
         }
         .history-content {
             background-color: #f8f9fa;
             padding: 15px;
             border-radius: 8px;
             margin-top: 10px;
-            border: 1px solid #dee2e6;
+            white-space: pre-wrap;
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: #333;
         }
         .history-content pre {
             margin: 0;
@@ -127,6 +135,10 @@
         .dropdown-item i {
             margin-right: 8px;
             color: #007bff;
+        }
+        .result-container {
+            text-align: left;
+            font-size: 0.95rem;
         }
     </style>
 </head>
@@ -215,7 +227,9 @@
                             <i class="fas fa-file"></i> {{ analysis.input }}
                         </div>
                         <div class="history-content">
-                            <pre>{{ analysis.output }}</pre>
+                            <div class="result-container">
+                                {{ analysis.output|safe|replace('<br>', '\n')|replace('<br/>', '\n')|replace('</br>', '\n') }}
+                            </div>
                         </div>
                     </div>
                     {% endfor %}
