@@ -82,7 +82,7 @@ class AiDoctor(db.Model):
 # Tạo cơ sở dữ liệu nếu chưa tồn tại
 with app.app_context():
     db.create_all()
-    add_column_if_not_exists()
+    add_column_if_not_exists(db)
 
 # Thêm cấu hình Cloudinary (thay thế các giá trị bằng thông tin từ dashboard của bạn)
 cloudinary.config(
@@ -312,7 +312,7 @@ def health_analysis():
                 flash('Có lỗi xảy ra khi xử lý file')
                 return redirect(request.url)
     
-    # Thêm return cho phư��ng thức GET
+    # Thêm return cho phương thức GET
     return render_template('health_analysis.html')
 
 @app.route('/ai_doctor')

@@ -3,6 +3,12 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def add_column_if_not_exists(db):
+    """
+    Kiểm tra và thêm cột 'verified' vào bảng user nếu chưa tồn tại
+    
+    Args:
+        db: SQLAlchemy database instance
+    """
     try:
         from sqlalchemy import inspect
         inspector = inspect(db.engine)
