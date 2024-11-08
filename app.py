@@ -69,7 +69,7 @@ with app.app_context():
 config( 
     cloud_name = "ddrfu9ftt",
     api_key = "419138417289347",
-    api_secret = "419138417289347",
+    api_secret = "cm9Rws-Nh44hnuzHER4LBxK2gCY",
     secure = True,
     signature_algorithm = "sha256"
 )
