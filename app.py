@@ -247,33 +247,41 @@ def analyze_audio():
 
     audio_file = request.files['audio']
     try:
+        # Lưu file audio vào uploads trước
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        filename = f"audio_{timestamp}.mp3"
+        filename = f"audio_{timestamp}.webm"
         filepath = os.path.join('uploads', filename)
         audio_file.save(filepath)
 
+        # Upload lên Cloudinary từ file local
+        upload_result = cloudinary.uploader.upload(filepath,
+            resource_type="video",
+            public_id=f"ai_doctor/{filename}",
+            folder="health_checker")
+        audio_url = upload_result['secure_url']
+
+        # Phân tích audio (sử dụng file local)
         analysis_result = analyze_audio_with_gemini(filepath)
 
         if analysis_result:
-            upload_result = cloudinary.uploader.upload(filepath,
-                resource_type="video",
-                public_id=f"ai_doctor/{filename}",
-                folder="health_checker")
+            # Tạo audio response từ ElevenLabs
+            audio_stream = stream_text_to_speech(analysis_result)
             
             user = User.query.filter_by(username=session['username']).first()
             analysis = AiDoctor(
                 email=user.email,
-                input=upload_result['secure_url'],
+                input=audio_url,
                 output=analysis_result
             )
             db.session.add(analysis)
             db.session.commit()
 
+            # Xóa file local sau khi đã upload xong
             os.remove(filepath)
 
             return jsonify({
                 "result": analysis_result,
-                "audio_url": url_for('stream_audio', result=analysis_result)
+                "stream_url": url_for('stream_audio', result=analysis_result)
             })
         else:
             if os.path.exists(filepath):
