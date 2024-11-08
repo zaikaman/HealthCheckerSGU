@@ -93,38 +93,36 @@ def index():
 def file_analysis():
     if request.method == 'POST':
         if 'file' not in request.files:
-            flash('No file part')
             return redirect(request.url)
-
-        if 'username' not in session:
-            flash('Vui lòng đăng nhập để sử dụng tính năng này')
-            return redirect(url_for('login'))
-
+            
         file = request.files['file']
-        if file.filename == '':
-            flash('No selected file')
-            return redirect(request.url)
-        
         if file and allowed_file(file.filename):
-            # Upload lên Cloudinary
-            file_url = upload_to_cloudinary(file, "medical")
-            if file_url:
-                # Phân tích với Gemini AI
-                text_prompt = "Hãy phân tích chi tiết hồ sơ y tế hoặc đơn thuốc này và đưa ra những thông tin quan trọng."
+            try:
+                # Upload to Cloudinary
+                result = uploader.upload(file, folder="healthchecker/medical")
+                file_url = result['secure_url']
+                
+                # Analyze with Gemini
+                text_prompt = "Analyze this medical record or prescription and extract key information in Vietnamese"
                 extracted_entities = analyze_text_with_image(text_prompt, file)
                 
-                # Lưu URL vào database thay vì filename
-                user = User.query.filter_by(username=session['username']).first()
-                analysis = FileAnalysis(
-                    email=user.email,
-                    input=file_url,  # Lưu URL Cloudinary
-                    output=extracted_entities
-                )
-                db.session.add(analysis)
-                db.session.commit()
+                # Save to database
+                if 'username' in session:
+                    user = User.query.filter_by(username=session['username']).first()
+                    analysis = FileAnalysis(
+                        email=user.email,
+                        input=file_url,
+                        output=extracted_entities
+                    )
+                    db.session.add(analysis)
+                    db.session.commit()
                 
                 return render_template('file_analysis.html', extracted_entities=extracted_entities)
-    
+                
+            except Exception as e:
+                print(f"Error: {str(e)}")
+                return redirect(request.url)
+                
     return render_template('file_analysis.html')
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -169,36 +167,36 @@ def signup():
 def health_analysis():
     if request.method == 'POST':
         if 'file' not in request.files:
-            flash('No file part')
             return redirect(request.url)
-
-        if 'username' not in session:
-            flash('Vui lòng đăng nhập để sử dụng tính năng này')
-            return redirect(url_for('login'))
-
+            
         file = request.files['file']
-        if file.filename == '':
-            flash('No selected file')
-            return redirect(request.url)
-
         if file and allowed_file(file.filename):
-            # Upload lên Cloudinary
-            file_url = upload_to_cloudinary(file, "health")
-            if file_url:
-                text_prompt = "Hãy phân tích tình trạng thể chất của người trong bức ảnh này..."
-                result = analyze_text_with_image(text_prompt, file)
+            try:
+                # Upload to Cloudinary
+                result = uploader.upload(file, folder="healthchecker/health")
+                file_url = result['secure_url']
                 
-                user = User.query.filter_by(username=session['username']).first()
-                analysis = HealthAnalysis(
-                    email=user.email,
-                    input=file_url,  # Lưu URL Cloudinary
-                    output=result
-                )
-                db.session.add(analysis)
-                db.session.commit()
+                # Analyze with Gemini
+                text_prompt = "Analyze this person's physical condition and health status in Vietnamese"
+                analysis_result = analyze_text_with_image(text_prompt, file)
                 
-                return render_template('health_analysis.html', health_analysis_result=result)
-
+                # Save to database
+                if 'username' in session:
+                    user = User.query.filter_by(username=session['username']).first()
+                    analysis = HealthAnalysis(
+                        email=user.email,
+                        input=file_url,
+                        output=analysis_result
+                    )
+                    db.session.add(analysis)
+                    db.session.commit()
+                
+                return render_template('health_analysis.html', health_analysis_result=analysis_result)
+                
+            except Exception as e:
+                print(f"Error: {str(e)}")
+                return redirect(request.url)
+                
     return render_template('health_analysis.html')
 
 @app.route('/ai_doctor')
@@ -218,32 +216,40 @@ def stream_text_to_speech(text):
 def analyze_audio():
     if 'audio' not in request.files:
         return jsonify({"error": "No audio file"}), 400
-
+        
     audio_file = request.files['audio']
     
-    # Upload audio lên Cloudinary
-    audio_url = upload_to_cloudinary(audio_file, "audio")
-    if not audio_url:
-        return jsonify({"error": "Upload failed"}), 500
-
-    analysis_result = analyze_audio_with_gemini(audio_file)
-    
-    if analysis_result:
-        user = User.query.filter_by(username=session['username']).first()
-        analysis = AiDoctor(
-            email=user.email,
-            input=audio_url,  # Lưu URL Cloudinary
-            output=analysis_result
+    try:
+        # Upload to Cloudinary
+        result = uploader.upload(
+            audio_file,
+            folder="healthchecker/audio",
+            resource_type="video"  # For audio files
         )
-        db.session.add(analysis)
-        db.session.commit()
-
+        audio_url = result['secure_url']
+        
+        # Analyze with Gemini
+        analysis_result = analyze_audio_with_gemini(audio_file)
+        
+        # Save to database
+        if 'username' in session:
+            user = User.query.filter_by(username=session['username']).first()
+            analysis = AiDoctor(
+                email=user.email,
+                input=audio_url,
+                output=analysis_result
+            )
+            db.session.add(analysis)
+            db.session.commit()
+        
         return jsonify({
             "result": analysis_result,
             "audio_url": audio_url
         })
-    else:
-        return jsonify({"error": "Analysis failed"}), 500
+        
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return jsonify({"error": "Upload or analysis failed"}), 500
 
 @app.route('/stream_audio')
 def stream_audio():
