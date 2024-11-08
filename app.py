@@ -198,15 +198,7 @@ def health_analysis():
                 file_url = upload_result['secure_url']
 
                 # Phân tích với AI (sử dụng file local)
-                text_prompt = """Dựa trên bức ảnh được cung cấp, hãy:
-                1. Mô tả khách quan các chỉ số sức khỏe có thể quan sát được (như BMI ước tính, tư thế, dáng đứng)
-                2. Đưa ra các gợi ý chung về cách cải thiện sức khỏe và thể chất, bao gồm:
-                   - Các bài tập thể dục phù hợp
-                   - Chế độ dinh dưỡng cân bằng
-                   - Thói quen lành mạnh
-                3. Lưu ý về tầm quan trọng của việc tham khảo ý kiến bác sĩ và chuyên gia dinh dưỡng
-                
-                Hãy trả lời một cách chuyên nghiệp, khoa học và mang tính hỗ trợ."""
+                text_prompt = "Hãy phân tích tình trạng thể chất của người trong bức ảnh này một cách khách quan và chuyên nghiệp. Hãy đưa ra nhận xét về các yếu tố như: tư thế, dáng người, cân nặng ước tính, và các dấu hiệu thể chất có thể quan sát được. Đưa ra những gợi ý và lời khuyên hữu ích để cải thiện sức khỏe nếu cần thiết. Hãy giữ giọng điệu tích cực và mang tính xây dựng."
                 result = analyze_text_with_image(text_prompt, filepath)
 
                 # Lưu vào database với Cloudinary URL
