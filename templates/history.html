@@ -93,6 +93,41 @@
             padding: 30px;
             font-style: italic;
         }
+        .navbar {
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 0.5rem 1rem;
+        }
+        .navbar-brand {
+            color: #007bff;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+        .navbar-brand img {
+            height: 30px;
+            width: auto;
+            margin-right: 10px;
+        }
+        .nav-link {
+            color: #6c757d;
+            font-weight: 500;
+        }
+        .nav-link:hover {
+            color: #007bff;
+        }
+        .btn-outline-primary {
+            border-color: #007bff;
+            color: #007bff;
+        }
+        .btn-outline-primary:hover {
+            background-color: #007bff;
+            color: white;
+        }
+        .dropdown-item i {
+            margin-right: 8px;
+            color: #007bff;
+        }
     </style>
 </head>
 <body>
@@ -100,18 +135,8 @@
     <nav class="navbar navbar-expand-lg">
         <div class="container-fluid">
             <a class="navbar-brand" href="{{ url_for('index') }}">
-                <img src="../static/images/logo.png" alt="Logo">
-                {% if request.endpoint == 'file_analysis' %}
-                    Phân Tích Hồ Sơ Y Tế
-                {% elif request.endpoint == 'health_analysis' %}
-                    Phân Tích Thể Trạng
-                {% elif request.endpoint == 'ai_doctor' %}
-                    Bác Sĩ AI
-                {% elif request.endpoint == 'history' %}
-                    Lịch Sử Phân Tích
-                {% else %}
-                    Health Checker
-                {% endif %}
+                <img src="../static/images/logo.png" alt="Logo" style="height: 30px; width: auto; margin-right: 10px;">
+                Lịch Sử Phân Tích
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown">
                 <span class="navbar-toggler-icon"></span>
@@ -123,30 +148,27 @@
                            data-bs-toggle="dropdown" aria-expanded="false">
                             Menu
                         </a>
-                        <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                            <li><a class="dropdown-item" href="{{ url_for('file_analysis') }}">Phân Tích Hồ Sơ Y Tế</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('health_analysis') }}">Phân Tích Thể Trạng</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('ai_doctor') }}">Bác Sĩ AI</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ url_for('history') }}">Lịch Sử Phân Tích</a></li>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('file_analysis') }}">
+                                <i class="fas fa-file-medical"></i> Phân Tích Hồ Sơ Y Tế
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('health_analysis') }}">
+                                <i class="fas fa-heartbeat"></i> Phân Tích Thể Trạng
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('ai_doctor') }}">
+                                <i class="fas fa-user-md"></i> Bác Sĩ AI
+                            </a></li>
                         </ul>
                     </li>
-                    {% if session.username %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('history') }}">
-                            <i class="fas fa-history"></i> Lịch Sử
-                        </a>
-                    </li>
-                    {% endif %}
                 </ul>
                 <ul class="navbar-nav">
                     {% if session.username %}
                         <li class="nav-item">
-                            <a href="{{ url_for('logout') }}" class="btn btn-outline-light">Đăng Xuất</a>
+                            <a href="{{ url_for('logout') }}" class="btn btn-outline-primary">Đăng Xuất</a>
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a href="{{ url_for('login') }}" class="btn btn-outline-light">Đăng Nhập</a>
+                            <a href="{{ url_for('login') }}" class="btn btn-outline-primary">Đăng Nhập</a>
                         </li>
                     {% endif %}
                 </ul>
