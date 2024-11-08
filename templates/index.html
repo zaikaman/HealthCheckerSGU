@@ -148,7 +148,7 @@
 
     <!-- Features Section -->
     <div class="container py-5">
-        <div class="row">
+        <div class="row justify-content-center">
             <div class="col-md-4">
                 <div class="feature-card text-center">
                     <div class="feature-icon">🏥</div>
@@ -173,7 +173,11 @@
                     <a href="{{ url_for('ai_doctor') }}" class="btn btn-primary">Bắt đầu</a>
                 </div>
             </div>
-            <div class="col-md-3">
+        </div>
+        
+        {% if session.username %}
+        <div class="row justify-content-center mt-4">
+            <div class="col-md-4">
                 <div class="feature-card text-center">
                     <div class="feature-icon">📊</div>
                     <h3>Lịch Sử Phân Tích</h3>
@@ -182,6 +186,7 @@
                 </div>
             </div>
         </div>
+        {% endif %}
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
