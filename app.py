@@ -8,16 +8,9 @@ from datetime import datetime, timedelta
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
-from flask_mail import Mail, Message
+from flask_mail import Mail
 import jwt
-import imaplib
-import email
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-import time
-import re
 from werkzeug.security import generate_password_hash, check_password_hash
-from sqlalchemy import inspect
 import logging
 from utils.email_utils import generate_confirmation_token, send_confirmation_email
 from utils.file_utils import allowed_file, add_column_if_not_exists
