@@ -5,7 +5,7 @@ from utils.gemini_integration import analyze_text_with_image, analyze_audio_with
 from werkzeug.utils import secure_filename
 from elevenlabs.client import ElevenLabs
 from datetime import datetime
-from cloudinary import config, uploader
+from cloudinary import config, uploader, api
 
 app = Flask(__name__)
 
@@ -69,7 +69,8 @@ with app.app_context():
 config(
     cloud_name="ddrfu9ftt",
     api_key="419138417289347", 
-    api_secret="419138417289347"
+    api_secret="419138417289347",
+    secure=True
 )
 
 # Hàm upload file lên Cloudinary
@@ -98,9 +99,16 @@ def file_analysis():
         file = request.files['file']
         if file and allowed_file(file.filename):
             try:
-                # Upload to Cloudinary
-                result = uploader.upload(file, folder="healthchecker/medical")
-                file_url = result['secure_url']
+                # Upload to Cloudinary với các tham số bổ sung
+                upload_result = uploader.upload(
+                    file,
+                    folder="healthchecker/medical",
+                    resource_type="auto",
+                    unique_filename=True,
+                    overwrite=True
+                )
+                
+                file_url = upload_result.get('secure_url')
                 
                 # Analyze with Gemini
                 text_prompt = "Analyze this medical record or prescription and extract key information in Vietnamese"
@@ -120,7 +128,7 @@ def file_analysis():
                 return render_template('file_analysis.html', extracted_entities=extracted_entities)
                 
             except Exception as e:
-                print(f"Error: {str(e)}")
+                print(f"Cloudinary Error: {str(e)}")
                 return redirect(request.url)
                 
     return render_template('file_analysis.html')
@@ -172,9 +180,14 @@ def health_analysis():
         file = request.files['file']
         if file and allowed_file(file.filename):
             try:
-                # Upload to Cloudinary
-                result = uploader.upload(file, folder="healthchecker/health")
-                file_url = result['secure_url']
+                upload_result = uploader.upload(
+                    file,
+                    folder="healthchecker/health",
+                    resource_type="auto",
+                    unique_filename=True,
+                    overwrite=True
+                )
+                file_url = upload_result.get('secure_url')
                 
                 # Analyze with Gemini
                 text_prompt = "Analyze this person's physical condition and health status in Vietnamese"
@@ -220,13 +233,14 @@ def analyze_audio():
     audio_file = request.files['audio']
     
     try:
-        # Upload to Cloudinary
-        result = uploader.upload(
+        upload_result = uploader.upload(
             audio_file,
             folder="healthchecker/audio",
-            resource_type="video"  # For audio files
+            resource_type="video",
+            unique_filename=True,
+            overwrite=True
         )
-        audio_url = result['secure_url']
+        audio_url = upload_result.get('secure_url')
         
         # Analyze with Gemini
         analysis_result = analyze_audio_with_gemini(audio_file)
