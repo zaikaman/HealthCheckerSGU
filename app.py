@@ -129,6 +129,9 @@ def file_analysis():
                     os.remove(filepath)
                 flash('Có lỗi xảy ra khi xử lý file')
                 return redirect(request.url)
+    
+    # Thêm return cho phương thức GET
+    return render_template('file_analysis.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
