@@ -1,11 +1,9 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, Response
 from flask_sqlalchemy import SQLAlchemy
 import os
-from utils.gemini_integration import analyze_text_with_gemini, analyze_text_with_image, analyze_audio_with_gemini
+from utils.gemini_integration import analyze_text_with_image, analyze_audio_with_gemini
 from werkzeug.utils import secure_filename
-from io import BytesIO
 from elevenlabs.client import ElevenLabs
-from elevenlabs import stream
 
 app = Flask(__name__)
 
