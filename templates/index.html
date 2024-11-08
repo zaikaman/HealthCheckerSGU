@@ -22,6 +22,8 @@
             color: white;
             margin-bottom: 50px;
             backdrop-filter: blur(5px);
+            border: 2px solid black;
+            border-radius: 10px;
         }
         .feature-card {
             background: rgba(255, 255, 255, 0.95);
@@ -32,9 +34,11 @@
             transition: transform 0.3s ease;
             height: 100%;
             backdrop-filter: blur(5px);
+            border: 2px solid black;
         }
         .feature-card:hover {
             transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
         }
         .feature-icon {
             font-size: 2.5rem;
@@ -91,6 +95,15 @@
             .navbar-toggler-icon {
                 background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%280, 123, 255, 1%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
             }
+        }
+        .container.py-5 {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            border: 2px solid black;
+        }
+        .container.py-5 .row {
+            margin: 0;
         }
     </style>
 </head>
