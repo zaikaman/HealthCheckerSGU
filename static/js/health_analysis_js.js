@@ -58,18 +58,16 @@ function validateFile(file) {
     return true;
 }
 
-// Show file preview with animation
+// Show file preview
 function showFilePreview(file, container) {
     const reader = new FileReader();
     reader.onload = function(e) {
         container.style.opacity = '0';
         container.innerHTML = `
             <img src="${e.target.result}" class="img-preview img-fluid rounded" 
-                 alt="Preview" style="max-height: 300px;">
+                 style="max-height: 200px; margin-top: 10px;">
         `;
-        
         setTimeout(() => {
-            container.style.transition = 'opacity 0.5s ease';
             container.style.opacity = '1';
         }, 100);
     };
