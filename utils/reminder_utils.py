@@ -79,6 +79,10 @@ def init_reminder_scheduler(app, mail, HealthReminder):
         logger.info("Scheduler already initialized, skipping...")
         return
         
+    # Import decorator
+    from app import retry_on_db_error
+    
+    @retry_on_db_error()
     def check_and_send_reminders():
         with app.app_context():
             try:
@@ -104,7 +108,7 @@ def init_reminder_scheduler(app, mail, HealthReminder):
                         cache_key = f"{reminder.id}_{current_time.strftime('%Y%m%d%H%M')}"
                         
                         if cache_key in sent_reminders:
-                            logger.info(f"Already sent reminder for {reminder.title} at {current_time.strftime('%Y-%m-%d %H:%M')}")
+                            logger.info(f"Already sent reminder for {reminder.title}")
                             continue
                         
                         if send_reminder_email(reminder, app, mail, cache_key):
