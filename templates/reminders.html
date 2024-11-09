@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Tạo nhắc nhở mới</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label>Tiêu đề</label>
+                            <input type="text" name="title" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Mô tả</label>
+                            <textarea name="description" class="form-control"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label>Loại nhắc nhở</label>
+                            <select name="type" class="form-control" required>
+                                <option value="medicine">Uống thuốc</option>
+                                <option value="exercise">Tập thể dục</option>
+                                <option value="checkup">Khám định kỳ</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label>Tần suất</label>
+                            <select name="frequency" class="form-control" required>
+                                <option value="daily">Hàng ngày</option>
+                                <option value="weekly">Hàng tuần</option>
+                                <option value="monthly">Hàng tháng</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label>Thời gian</label>
+                            <input type="time" name="time" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Ngày bắt đầu</label>
+                            <input type="date" name="start_date" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Ngày kết thúc (không bắt buộc)</label>
+                            <input type="date" name="end_date" class="form-control">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Tạo nhắc nhở</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <h3>Danh sách nhắc nhở</h3>
+            <div class="reminder-list">
+                {% for reminder in reminders %}
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ reminder.title }}</h5>
+                        <p class="card-text">{{ reminder.description }}</p>
+                        <p class="card-text">
+                            <small class="text-muted">
+                                {{ reminder.time.strftime('%H:%M') }} - 
+                                {{ reminder.frequency }}
+                            </small>
+                        </p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

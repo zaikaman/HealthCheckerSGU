@@ -8,5 +8,6 @@ cloudinary
 flask-mail
 PyJWT
 python-imap
-Werkzeug  # Cho secure_filename
-python-dotenv  # Khuyến nghị để quản lý biến môi trường
+Werkzeug
+python-dotenv
+apscheduler

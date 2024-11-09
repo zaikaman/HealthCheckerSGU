@@ -17,6 +17,8 @@ from utils.file_utils import allowed_file, add_column_if_not_exists
 from utils.audio_utils import stream_text_to_speech
 from utils.validation_utils import is_valid_email
 import traceback
+from utils.reminder_utils import init_reminder_scheduler, shutdown_scheduler
+import atexit
 
 app = Flask(__name__)
 
@@ -73,6 +75,20 @@ class AiDoctor(db.Model):
     output = db.Column(db.Text, nullable=False)  # Lưu kết quả phân tích
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+class HealthReminder(db.Model):
+    __tablename__ = 'tbl_health_reminders'
+    id = db.Column(db.Integer, primary_key=True)
+    user_email = db.Column(db.String(120), nullable=False)
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text)
+    reminder_type = db.Column(db.String(50), nullable=False)
+    frequency = db.Column(db.String(50), nullable=False)
+    time = db.Column(db.Time, nullable=False)
+    start_date = db.Column(db.Date, nullable=False)
+    end_date = db.Column(db.Date)
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
 # Tạo cơ sở dữ liệu nếu chưa tồn tại
 with app.app_context():
     db.create_all()
@@ -105,6 +121,14 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+# Sau khi đã khởi tạo app, db, mail và model HealthReminder
+init_reminder_scheduler(app, mail, HealthReminder)
+
+# Khi cần tắt app
+@atexit.register
+def shutdown():
+    shutdown_scheduler()
 
 @app.route('/')
 def index():
@@ -423,6 +447,37 @@ def history():
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+@app.route('/reminders', methods=['GET', 'POST'])
+def reminders():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+        
+    user = User.query.filter_by(username=session['username']).first()
+    
+    if request.method == 'POST':
+        reminder = HealthReminder(
+            user_email=user.email,
+            title=request.form['title'],
+            description=request.form['description'],
+            reminder_type=request.form['type'],
+            frequency=request.form['frequency'],
+            time=datetime.strptime(request.form['time'], '%H:%M').time(),
+            start_date=datetime.strptime(request.form['start_date'], '%Y-%m-%d').date(),
+            end_date=datetime.strptime(request.form['end_date'], '%Y-%m-%d').date() if request.form['end_date'] else None
+        )
+        db.session.add(reminder)
+        db.session.commit()
+        
+        flash('Đã tạo nhắc nhở mới!', 'success')
+        return redirect(url_for('reminders'))
+        
+    reminders = HealthReminder.query.filter_by(
+        user_email=user.email,
+        is_active=True
+    ).order_by(HealthReminder.time).all()
+    
+    return render_template('reminders.html', reminders=reminders)
 
 if __name__ == '__main__':
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
