@@ -87,15 +87,18 @@ document.addEventListener('DOMContentLoaded', function() {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
 
-    // Thêm xử lý cho nút yêu cầu đăng nhập
+    // Kiểm tra trạng thái đăng nhập
+    const isLoggedIn = document.body.dataset.loggedIn === 'true';
     const loginModal = document.getElementById('loginModal');
     const checkLoginButtons = document.querySelectorAll('.check-login');
-    const menuDropdown = document.querySelector('.dropdown-toggle');
 
     function showLoginModal(e) {
-        e.preventDefault();
-        loginModal.classList.add('show');
-        document.body.style.overflow = 'hidden';
+        // Chỉ hiện modal nếu chưa đăng nhập
+        if (!isLoggedIn) {
+            e.preventDefault();
+            loginModal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
     }
 
     function hideLoginModal(e) {
@@ -105,15 +108,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Thêm event listeners
-    checkLoginButtons.forEach(button => {
-        button.addEventListener('click', showLoginModal);
-    });
+    // Thêm event listeners chỉ khi chưa đăng nhập
+    if (!isLoggedIn) {
+        checkLoginButtons.forEach(button => {
+            button.addEventListener('click', showLoginModal);
+        });
+        loginModal.addEventListener('click', hideLoginModal);
+    }
 
-    loginModal.addEventListener('click', hideLoginModal);
-
-    // Xử lý menu dropdown khi chưa đăng nhập
-    if (menuDropdown && !document.body.dataset.loggedIn) {
+    // Xử lý menu dropdown
+    const menuDropdown = document.querySelector('.dropdown-toggle');
+    if (menuDropdown && !isLoggedIn) {
         menuDropdown.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
