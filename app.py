@@ -16,6 +16,7 @@ from utils.email_utils import generate_confirmation_token, send_confirmation_ema
 from utils.file_utils import allowed_file, add_column_if_not_exists
 from utils.audio_utils import stream_text_to_speech
 from utils.validation_utils import is_valid_email
+import traceback
 
 app = Flask(__name__)
 
@@ -91,12 +92,18 @@ app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USE_SSL'] = False
 app.config['MAIL_USERNAME'] = 'thinhgpt1706@gmail.com'  # Email của bạn
 app.config['MAIL_PASSWORD'] = 'xgxn kjcv haqf sjxz'    # App password
+app.config['MAIL_DEFAULT_SENDER'] = ('Health Checker Support', 'thinhgpt1706@gmail.com')
+app.config['MAIL_MAX_EMAILS'] = None
+app.config['MAIL_ASCII_ATTACHMENTS'] = False
 
 # Khởi tạo Mail
 mail = Mail(app)
 
 # Thêm logging để debug
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
 @app.route('/')
@@ -183,52 +190,62 @@ def logout():
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
-        username = request.form.get('username')
-        email = request.form.get('email')
-        password = request.form.get('password')
-        
-        # Validate input
-        if not username or not email or not password:
-            flash("Vui lòng điền đầy đủ thông tin", "danger")
-            return redirect(url_for('signup'))
+        try:
+            username = request.form.get('username')
+            email = request.form.get('email')
+            password = request.form.get('password')
             
-        if not is_valid_email(email):
-            flash("Email không hợp lệ", "danger")
-            return redirect(url_for('signup'))
-            
-        if len(password) < 6:
-            flash("Mật khẩu phải có ít nhất 6 ký tự", "danger")
-            return redirect(url_for('signup'))
-        
-        existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
-        if existing_user:
-            flash("Tên đăng nhập hoặc Email đã tồn tại", "danger")
-        else:
-            # Hash password trước khi lưu
-            hashed_password = generate_password_hash(password)
-            new_user = User(
-                username=username, 
-                email=email, 
-                password=hashed_password,
-                verified=False
-            )
-            try:
-                db.session.add(new_user)
-                db.session.commit()
+            # Validate input
+            if not username or not email or not password:
+                flash("Vui lòng điền đầy đủ thông tin", "danger")
+                return redirect(url_for('signup'))
                 
-                # Sửa lại phần gửi email xác nhận
-                token = generate_confirmation_token(email, app)
-                if send_confirmation_email(email, token, app, mail):
+            if not is_valid_email(email):
+                flash("Email không hợp lệ", "danger")
+                return redirect(url_for('signup'))
+                
+            if len(password) < 6:
+                flash("Mật khẩu phải có ít nhất 6 ký tự", "danger")
+                return redirect(url_for('signup'))
+            
+            existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
+            if existing_user:
+                flash("Tên đăng nhập hoặc Email đã tồn tại", "danger")
+            else:
+                # Hash password trước khi lưu
+                hashed_password = generate_password_hash(password)
+                new_user = User(
+                    username=username, 
+                    email=email, 
+                    password=hashed_password,
+                    verified=False
+                )
+                try:
+                    db.session.add(new_user)
+                    db.session.commit()
+                    
+                    # Sửa lại phần gửi email xác nhận
+                    token = generate_confirmation_token(email, app)
+                    if not send_confirmation_email(email, token, app, mail):
+                        logger.error("Failed to send confirmation email")
+                        flash('Có lỗi xảy ra khi gửi email xác nhận. Vui lòng thử lại.')
+                        return redirect(url_for('signup'))
+                    
                     logger.info(f"Confirmation email sent to {email}")
                     flash("Tài khoản đã được tạo! Vui lòng kiểm tra email để xác nhận.", "success")
-                else:
-                    logger.error(f"Failed to send confirmation email to {email}")
-                    flash("Có lỗi xảy ra khi gửi email xác nhận. Vui lòng thử lại.", "danger")
-                return redirect(url_for('login'))
-            except Exception as e:
-                db.session.rollback()
-                logger.error(f"Error during signup: {str(e)}")
-                flash("Có lỗi xảy ra, vui lòng thử lại sau", "danger")
+                    return redirect(url_for('login'))
+                except Exception as e:
+                    db.session.rollback()
+                    logger.error(f"Error during signup: {str(e)}")
+                    logger.error(traceback.format_exc())
+                    flash('Có lỗi xảy ra. Vui lòng thử lại.')
+                    return redirect(url_for('signup'))
+        
+        except Exception as e:
+            logger.error(f"Error in signup: {str(e)}")
+            logger.error(traceback.format_exc())
+            flash('Có lỗi xảy ra. Vui lòng thử lại.')
+            return redirect(url_for('signup'))
     
     return render_template('signup.html')
 

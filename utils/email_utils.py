@@ -21,17 +21,11 @@ def send_confirmation_email(to_email, token, app, mail):
         headers = {
             'X-Priority': '1',
             'X-MSMail-Priority': 'High',
-            'Importance': 'High',
-            'Reply-To': app.config['MAIL_USERNAME'],
-            'X-Auto-Response-Suppress': 'OOF, DR, RN, NRN, AutoReply'
+            'Importance': 'High'
         }
         
         msg = Message(
-            'Xác nhận tài khoản Health Checker',
-            sender=(
-                'Health Checker Support',
-                app.config['MAIL_USERNAME']
-            ),
+            subject='Xác nhận tài khoản Health Checker',
             recipients=[to_email],
             headers=headers
         )
@@ -40,7 +34,7 @@ def send_confirmation_email(to_email, token, app, mail):
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                 <h2 style="color: #007bff;">Xác nhận tài khoản Health Checker của bạn</h2>
                 <p>Xin chào,</p>
-                <p>Cảm ơn bạn đã đăng ký tài khoản trên Health Checker. Để đảm bảo tính bảo mật và hoàn tất quá trình đăng ký, vui lòng xác nhận địa chỉ email của bạn bằng cách nhấp vào nút bên dưới:</p>
+                <p>Cảm ơn bạn đã đăng ký tài khoản trên Health Checker. Để hoàn tất quá trình đăng ký, vui lòng xác nhận địa chỉ email của bạn bằng cách nhấp vào nút bên dưới:</p>
                 <a href="{confirm_url}" 
                    style="display: inline-block; 
                           background-color: #007bff; 
@@ -56,7 +50,6 @@ def send_confirmation_email(to_email, token, app, mail):
                 <p><strong>Lưu ý:</strong> Link xác nhận này sẽ hết hạn sau 24 giờ.</p>
                 <hr style="margin: 20px 0;">
                 <p style="color: #666; font-size: 12px;">Email này được gửi tự động từ Health Checker. Vui lòng không trả lời email này.</p>
-                <p style="color: #666; font-size: 12px;">Nếu bạn không đăng ký tài khoản này, vui lòng bỏ qua email này.</p>
             </div>
         '''
         
