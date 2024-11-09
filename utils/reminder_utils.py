@@ -71,6 +71,7 @@ def init_reminder_scheduler(app, mail, HealthReminder):
         with app.app_context():
             try:
                 current_time = datetime.now()
+                logger.info(f"Checking reminders at {current_time}")
                 
                 # Lấy tất cả nhắc nhở đang active
                 reminders = HealthReminder.query.filter(
@@ -79,25 +80,40 @@ def init_reminder_scheduler(app, mail, HealthReminder):
                     (HealthReminder.end_date.is_(None) | (HealthReminder.end_date >= current_time.date()))
                 ).all()
                 
+                logger.info(f"Found {len(reminders)} active reminders")
+                
                 for reminder in reminders:
+                    logger.info(f"Checking reminder: {reminder.title}")
+                    logger.info(f"Reminder time: {reminder.time}, Current time: {current_time.time()}")
+                    
                     # Kiểm tra thời gian
                     reminder_time = reminder.time
                     if (current_time.hour == reminder_time.hour and 
-                        current_time.minute >= reminder_time.minute and 
-                        current_time.minute < reminder_time.minute + 1):
+                        current_time.minute == reminder_time.minute):
+                        
+                        logger.info(f"Time match found for reminder: {reminder.title}")
                         
                         # Kiểm tra tần suất
                         should_send = False
                         if reminder.frequency == 'daily':
                             should_send = True
+                            logger.info("Daily reminder - should send")
                         elif reminder.frequency == 'weekly' and current_time.weekday() == reminder.start_date.weekday():
                             should_send = True
+                            logger.info("Weekly reminder - should send")
                         elif reminder.frequency == 'monthly' and current_time.day == reminder.start_date.day:
                             should_send = True
+                            logger.info("Monthly reminder - should send")
                             
                         if should_send:
-                            send_reminder_email(reminder, app, mail)
-                            logger.info(f"Checked and sent reminder for {reminder.user_email} at {current_time}")
+                            logger.info(f"Attempting to send email for reminder: {reminder.title}")
+                            success = send_reminder_email(reminder, app, mail)
+                            if success:
+                                logger.info(f"Successfully sent reminder email to {reminder.user_email}")
+                            else:
+                                logger.error(f"Failed to send reminder email to {reminder.user_email}")
+                    else:
+                        logger.debug(f"Time mismatch - Reminder: {reminder_time}, Current: {current_time.time()}")
                     
             except Exception as e:
                 logger.error(f"Error in check_and_send_reminders: {str(e)}")
