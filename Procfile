@@ -1,1 +1,1 @@
-gunicorn app:app --workers=1
+gunicorn app:app --preload
