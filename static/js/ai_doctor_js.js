@@ -11,7 +11,18 @@ async function toggleRecording() {
     if (!isRecording) {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
+            const options = {
+                mimeType: 'audio/mpeg',
+                audioBitsPerSecond: 128000
+            };
+            
+            // Kiểm tra xem trình duyệt có hỗ trợ MP3 không
+            if (!MediaRecorder.isTypeSupported('audio/mpeg')) {
+                console.warn('MP3 không được hỗ trợ, sử dụng định dạng mặc định');
+                mediaRecorder = new MediaRecorder(stream);
+            } else {
+                mediaRecorder = new MediaRecorder(stream, options);
+            }
             
             mediaRecorder.ondataavailable = event => {
                 if (event.data.size > 0) {
@@ -20,12 +31,11 @@ async function toggleRecording() {
             };
             
             mediaRecorder.onstop = async () => {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                const audioBlob = new Blob(audioChunks, { type: 'audio/mpeg' });
                 audioChunks = [];
                 await analyzeAudioWithGemini(audioBlob);
             };
             
-            // Start recording with UI updates
             mediaRecorder.start();
             isRecording = true;
             microphoneImg.classList.add('recording');
@@ -36,7 +46,6 @@ async function toggleRecording() {
             showError('Không thể truy cập microphone. Vui lòng kiểm tra quyền truy cập.');
         }
     } else {
-        // Stop recording with UI updates
         mediaRecorder.stop();
         isRecording = false;
         microphoneImg.classList.remove('recording');
@@ -47,7 +56,7 @@ async function toggleRecording() {
 // Enhanced audio analysis function
 async function analyzeAudioWithGemini(audioBlob) {
     const formData = new FormData();
-    formData.append("audio", audioBlob, "recording.webm");
+    formData.append("audio", audioBlob, "recording.mp3");
 
     try {
         const response = await fetch("/analyze_audio", {
@@ -65,7 +74,6 @@ async function analyzeAudioWithGemini(audioBlob) {
         handleAnalysisError(error);
     }
 }
-
 // Handle successful analysis
 function handleAnalysisSuccess(data) {
     const cleanedResult = data.result.replace(/\*/g, "");
@@ -152,3 +160,4 @@ function getMediaContent(type) {
                 class="media-content active" style="width: 100%; height: 100%; object-fit: cover;">`;
     }
 }
+

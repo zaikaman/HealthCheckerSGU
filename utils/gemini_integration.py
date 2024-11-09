@@ -152,7 +152,7 @@ def analyze_audio_with_gemini(audio_path):
     analysis_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={api_key}"
 
     # Xác định loại MIME của file
-    mime_type = "audio/mpeg" if audio_path.lower().endswith(".mp3") else "audio/wav"
+    mime_type = "audio/mpeg"
     num_bytes = os.path.getsize(audio_path)
 
     # Thiết lập header cho bước khởi tạo upload

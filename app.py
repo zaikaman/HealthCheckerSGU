@@ -428,7 +428,7 @@ def analyze_audio():
     try:
         # Save user's audio input
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        filename = f"audio_{timestamp}.webm"
+        filename = f"audio_{timestamp}.mp3"
         filepath = os.path.join('uploads', filename)
         audio_file.save(filepath)
 
