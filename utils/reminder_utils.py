@@ -82,7 +82,7 @@ def init_reminder_scheduler(app, mail, HealthReminder):
     def check_and_send_reminders():
         with app.app_context():
             try:
-                current_time = datetime.now(vietnam_tz)
+                current_time = datetime.now()
                 logger.info(f"[Scheduler] Running check at {current_time}")
                 
                 # Lấy tất cả nhắc nhở đang active
@@ -97,7 +97,6 @@ def init_reminder_scheduler(app, mail, HealthReminder):
                 for reminder in reminders:
                     logger.info(f"[Scheduler] Processing reminder: {reminder.title}")
                     reminder_datetime = datetime.combine(current_time.date(), reminder.time)
-                    reminder_datetime = vietnam_tz.localize(reminder_datetime)
                     
                     if (current_time.hour == reminder_datetime.hour and 
                         current_time.minute == reminder_datetime.minute):
