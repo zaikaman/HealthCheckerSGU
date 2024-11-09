@@ -104,6 +104,18 @@
                         {% endif %}
                     </div>
                 </div>
+                <div class="col-md-4">
+                    <div class="feature-card text-center">
+                        <div class="feature-icon">⏰</div>
+                        <h3>Nhắc nhở Sức khỏe</h3>
+                        <p>Đặt lịch nhắc nhở uống thuốc, tập thể dục và khám định kỳ</p>
+                        {% if not session.username %}
+                            <a href="#" class="btn btn-primary check-login">Bắt đầu</a>
+                        {% else %}
+                            <a href="{{ url_for('reminders') }}" class="btn btn-primary">Bắt đầu</a>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
             
             {% if session.username %}
