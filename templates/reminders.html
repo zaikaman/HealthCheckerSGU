@@ -166,8 +166,8 @@
                                                     data-type="{{ reminder.reminder_type }}"
                                                     data-frequency="{{ reminder.frequency }}"
                                                     data-time="{{ reminder.time.strftime('%H:%M') }}"
-                                                    data-start-date="{{ reminder.start_date }}"
-                                                    data-end-date="{{ reminder.end_date or '' }}">
+                                                    data-start-date="{{ reminder.start_date.strftime('%Y-%m-%d') }}"
+                                                    data-end-date="{{ reminder.end_date.strftime('%Y-%m-%d') if reminder.end_date else '' }}">
                                                 <i class="fas fa-edit"></i>
                                             </button>
                                             <button class="btn btn-sm btn-outline-danger delete-reminder" 
@@ -209,10 +209,40 @@
                         <input type="hidden" id="editReminderId">
                         <div class="mb-3">
                             <label>Tiêu đề</label>
-                            <input type="text" id="editTitle" class="form-control" required>
+                            <input type="text" id="editTitle" name="title" class="form-control" required>
                         </div>
-                        <!-- Copy other form fields from the create form, with 'edit' prefix -->
-                        <!-- ... -->
+                        <div class="mb-3">
+                            <label>Mô tả</label>
+                            <textarea id="editDescription" name="description" class="form-control"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label>Loại nhắc nhở</label>
+                            <select id="editType" name="type" class="form-control" required>
+                                <option value="medicine">Uống thuốc</option>
+                                <option value="exercise">Tập thể dục</option>
+                                <option value="checkup">Khám định kỳ</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label>Tần suất</label>
+                            <select id="editFrequency" name="frequency" class="form-control" required>
+                                <option value="daily">Hàng ngày</option>
+                                <option value="weekly">Hàng tuần</option>
+                                <option value="monthly">Hàng tháng</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label>Thời gian</label>
+                            <input type="time" id="editTime" name="time" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Ngày bắt đầu</label>
+                            <input type="date" id="editStartDate" name="start_date" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Ngày kết thúc (không bắt buộc)</label>
+                            <input type="date" id="editEndDate" name="end_date" class="form-control">
+                        </div>
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -235,7 +265,12 @@
                 // Populate form fields
                 document.getElementById('editReminderId').value = reminderId;
                 document.getElementById('editTitle').value = this.dataset.title;
-                // ... populate other fields ...
+                document.getElementById('editDescription').value = this.dataset.description;
+                document.getElementById('editType').value = this.dataset.type;
+                document.getElementById('editFrequency').value = this.dataset.frequency;
+                document.getElementById('editTime').value = this.dataset.time;
+                document.getElementById('editStartDate').value = this.dataset.startDate;
+                document.getElementById('editEndDate').value = this.dataset.endDate;
                 
                 modal.show();
             });
