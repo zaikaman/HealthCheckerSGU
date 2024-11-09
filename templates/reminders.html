@@ -1,223 +1,37 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nhắc nhở Sức khỏe</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="{{ url_for('static', filename='css/reminders_css.css') }}" rel="stylesheet">
-</head>
-<body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">
-                <img src="../static/images/logo.png" alt="Logo" onclick="window.location.href='/';">
-                Nhắc Nhở Sức Khỏe
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNavDropdown">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" 
-                           data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-home"></i> Trang Chủ
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                            <li><a class="dropdown-item" href="{{ url_for('index') }}">
-                                <i class="fas fa-home"></i> Trang Chủ
-                            </a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ url_for('file_analysis') }}">Phân Tích Hồ Sơ Y Tế</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('health_analysis') }}">Phân Tích Thể Trạng</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('ai_doctor') }}">Bác Sĩ AI</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('reminders') }}">Nhắc Nhở Sức Khỏe</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ url_for('history') }}">Lịch Sử Phân Tích</a></li>
-                        </ul>
-                    </li>
-                    {% if session.username %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('history') }}">
-                            <i class="fas fa-history"></i> Lịch Sử
-                        </a>
-                    </li>
-                    {% endif %}
-                </ul>
-                <ul class="navbar-nav">
-                    {% if session.username %}
-                        <li class="nav-item">
-                            <a href="{{ url_for('logout') }}" class="btn btn-outline-light">Đăng Xuất</a>
-                        </li>
-                    {% else %}
-                        <li class="nav-item">
-                            <a href="{{ url_for('login') }}" class="btn btn-outline-light">Đăng Nhập</a>
-                        </li>
-                    {% endif %}
-                </ul>
-            </div>
-        </div>
-    </nav>
+{% extends "base.html" %}
 
-    <div class="content-wrapper">
-        <div class="container">
-            <h1 class="text-center mb-4">
-                <i class="fas fa-bell text-primary me-2"></i>
-                Quản lý Nhắc Nhở Sức Khỏe
-            </h1>
-            
-            <div class="row">
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5>Tạo nhắc nhở mới</h5>
-                        </div>
-                        <div class="card-body">
-                            <form method="POST">
-                                <div class="mb-3">
-                                    <label>Tiêu đề</label>
-                                    <input type="text" name="title" class="form-control" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label>Mô tả</label>
-                                    <textarea name="description" class="form-control"></textarea>
-                                </div>
-                                <div class="mb-3">
-                                    <label>Loại nhắc nhở</label>
-                                    <select name="type" class="form-control" required>
-                                        <option value="medicine">Uống thuốc</option>
-                                        <option value="exercise">Tập thể dục</option>
-                                        <option value="checkup">Khám định kỳ</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label>Tần suất</label>
-                                    <select name="frequency" class="form-control" required>
-                                        <option value="daily">Hàng ngày</option>
-                                        <option value="weekly">Hàng tuần</option>
-                                        <option value="monthly">Hàng tháng</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label>Thời gian</label>
-                                    <input type="time" name="time" class="form-control" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label>Ngày bắt đầu</label>
-                                    <input type="date" name="start_date" class="form-control" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label>Ngày kết thúc (không bắt buộc)</label>
-                                    <input type="date" name="end_date" class="form-control">
-                                </div>
-                                <button type="submit" class="btn btn-primary w-100">
-                                    <i class="fas fa-plus me-2"></i>Tạo nhắc nhở
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-8">
-                    <h3>Danh sách nhắc nhở</h3>
-                    <div class="card mb-3">
-                        <div class="card-body">
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <input type="text" id="searchInput" class="form-control" 
-                                           placeholder="Tìm kiếm theo tiêu đề hoặc mô tả...">
-                                </div>
-                                <div class="col-md-4">
-                                    <select id="typeFilter" class="form-control">
-                                        <option value="">Tất cả loại nhắc nhở</option>
-                                        <option value="medicine">Uống thuốc</option>
-                                        <option value="exercise">Tập thể dục</option>
-                                        <option value="checkup">Khám định kỳ</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-2">
-                                    <button class="btn btn-primary w-100" id="searchButton">
-                                        <i class="fas fa-search"></i> Tìm
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="reminder-list">
-                        <div id="loadingIndicator" class="text-center d-none">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Đang tải...</span>
-                            </div>
-                        </div>
-                        <div id="reminderContainer">
-                            {% for reminder in reminders %}
-                            <div class="card mb-3" id="reminder-{{ reminder.id }}">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <h5 class="card-title">{{ reminder.title }}</h5>
-                                        <div class="btn-group">
-                                            <button class="btn btn-sm btn-outline-primary edit-reminder" 
-                                                    data-reminder-id="{{ reminder.id }}"
-                                                    data-title="{{ reminder.title }}"
-                                                    data-description="{{ reminder.description }}"
-                                                    data-type="{{ reminder.reminder_type }}"
-                                                    data-frequency="{{ reminder.frequency }}"
-                                                    data-time="{{ reminder.time.strftime('%H:%M') }}"
-                                                    data-start-date="{{ reminder.start_date.strftime('%Y-%m-%d') }}"
-                                                    data-end-date="{{ reminder.end_date.strftime('%Y-%m-%d') if reminder.end_date else '' }}">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-danger delete-reminder" 
-                                                    data-reminder-id="{{ reminder.id }}">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <p class="card-text">{{ reminder.description }}</p>
-                                    <p class="card-text">
-                                        <small class="text-muted">
-                                            <i class="fas fa-clock me-1"></i>
-                                            {% set reminder_time = reminder.time %}
-                                            {% set local_time = (reminder_time.strftime('%H:%M')|string) %}
-                                            {{ local_time }} - 
-                                            <i class="fas fa-calendar me-1"></i>{{ reminder.frequency }}
-                                        </small>
-                                    </p>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+{% block extra_css %}
+<link href="{{ url_for('static', filename='css/reminders_css.css') }}" rel="stylesheet">
+{% endblock %}
 
-    <!-- Edit Modal -->
-    <div class="modal fade" id="editReminderModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Chỉnh sửa nhắc nhở</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+{% block nav_title %}Nhắc Nhở Sức Khỏe{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="text-center mb-4">
+        <i class="fas fa-bell text-primary me-2"></i>
+        Quản lý Nhắc Nhở Sức Khỏe
+    </h1>
+    
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Tạo nhắc nhở mới</h5>
                 </div>
-                <div class="modal-body">
-                    <form id="editReminderForm">
-                        <input type="hidden" id="editReminderId">
+                <div class="card-body">
+                    <form method="POST">
                         <div class="mb-3">
                             <label>Tiêu đề</label>
-                            <input type="text" id="editTitle" name="title" class="form-control" required>
+                            <input type="text" name="title" class="form-control" required>
                         </div>
                         <div class="mb-3">
                             <label>Mô tả</label>
-                            <textarea id="editDescription" name="description" class="form-control"></textarea>
+                            <textarea name="description" class="form-control"></textarea>
                         </div>
                         <div class="mb-3">
                             <label>Loại nhắc nhở</label>
-                            <select id="editType" name="type" class="form-control" required>
+                            <select name="type" class="form-control" required>
                                 <option value="medicine">Uống thuốc</option>
                                 <option value="exercise">Tập thể dục</option>
                                 <option value="checkup">Khám định kỳ</option>
@@ -225,7 +39,7 @@
                         </div>
                         <div class="mb-3">
                             <label>Tần suất</label>
-                            <select id="editFrequency" name="frequency" class="form-control" required>
+                            <select name="frequency" class="form-control" required>
                                 <option value="daily">Hàng ngày</option>
                                 <option value="weekly">Hàng tuần</option>
                                 <option value="monthly">Hàng tháng</option>
@@ -233,205 +47,155 @@
                         </div>
                         <div class="mb-3">
                             <label>Thời gian</label>
-                            <input type="time" id="editTime" name="time" class="form-control" required>
+                            <input type="time" name="time" class="form-control" required>
                         </div>
                         <div class="mb-3">
                             <label>Ngày bắt đầu</label>
-                            <input type="date" id="editStartDate" name="start_date" class="form-control" required>
+                            <input type="date" name="start_date" class="form-control" required>
                         </div>
                         <div class="mb-3">
                             <label>Ngày kết thúc (không bắt buộc)</label>
-                            <input type="date" id="editEndDate" name="end_date" class="form-control">
+                            <input type="date" name="end_date" class="form-control">
                         </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-plus me-2"></i>Tạo nhắc nhở
+                        </button>
                     </form>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="button" class="btn btn-primary" id="saveEditButton">Lưu</button>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <h3>Danh sách nhắc nhở</h3>
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <input type="text" id="searchInput" class="form-control" 
+                                   placeholder="Tìm kiếm theo tiêu đề hoặc mô tả...">
+                        </div>
+                        <div class="col-md-4">
+                            <select id="typeFilter" class="form-control">
+                                <option value="">Tất cả loại nhắc nhở</option>
+                                <option value="medicine">Uống thuốc</option>
+                                <option value="exercise">Tập thể dục</option>
+                                <option value="checkup">Khám định kỳ</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-primary w-100" id="searchButton">
+                                <i class="fas fa-search"></i> Tìm
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="reminder-list">
+                <div id="loadingIndicator" class="text-center d-none">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Đang tải...</span>
+                    </div>
+                </div>
+                <div id="reminderContainer">
+                    {% for reminder in reminders %}
+                    <div class="card mb-3" id="reminder-{{ reminder.id }}">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <h5 class="card-title">{{ reminder.title }}</h5>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-outline-primary edit-reminder" 
+                                            data-reminder-id="{{ reminder.id }}"
+                                            data-title="{{ reminder.title }}"
+                                            data-description="{{ reminder.description }}"
+                                            data-type="{{ reminder.reminder_type }}"
+                                            data-frequency="{{ reminder.frequency }}"
+                                            data-time="{{ reminder.time.strftime('%H:%M') }}"
+                                            data-start-date="{{ reminder.start_date.strftime('%Y-%m-%d') }}"
+                                            data-end-date="{{ reminder.end_date.strftime('%Y-%m-%d') if reminder.end_date else '' }}">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger delete-reminder" 
+                                            data-reminder-id="{{ reminder.id }}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <p class="card-text">{{ reminder.description }}</p>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>
+                                    {% set reminder_time = reminder.time %}
+                                    {% set local_time = (reminder_time.strftime('%H:%M')|string) %}
+                                    {{ local_time }} - 
+                                    <i class="fas fa-calendar me-1"></i>{{ reminder.frequency }}
+                                </small>
+                            </p>
+                        </div>
+                    </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Edit Reminder
-        document.querySelectorAll('.edit-reminder').forEach(button => {
-            button.addEventListener('click', function() {
-                const reminderId = this.dataset.reminderId;
-                const modal = new bootstrap.Modal(document.getElementById('editReminderModal'));
-                
-                // Populate form fields
-                document.getElementById('editReminderId').value = reminderId;
-                document.getElementById('editTitle').value = this.dataset.title;
-                document.getElementById('editDescription').value = this.dataset.description;
-                document.getElementById('editType').value = this.dataset.type;
-                document.getElementById('editFrequency').value = this.dataset.frequency;
-                document.getElementById('editTime').value = this.dataset.time;
-                document.getElementById('editStartDate').value = this.dataset.startDate;
-                document.getElementById('editEndDate').value = this.dataset.endDate;
-                
-                modal.show();
-            });
-        });
-        
-        // Save Edit
-        document.getElementById('saveEditButton').addEventListener('click', function() {
-            const reminderId = document.getElementById('editReminderId').value;
-            const formData = new FormData(document.getElementById('editReminderForm'));
-            
-            fetch(`/edit_reminder/${reminderId}`, {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    location.reload();
-                } else {
-                    alert(data.message);
-                }
-            });
-        });
-        
-        // Delete Reminder
-        document.querySelectorAll('.delete-reminder').forEach(button => {
-            button.addEventListener('click', function() {
-                if (confirm('Bạn có chắc chắn muốn xóa nhắc nhở này?')) {
-                    const reminderId = this.dataset.reminderId;
-                    
-                    fetch(`/delete_reminder/${reminderId}`, {
-                        method: 'POST'
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            document.getElementById(`reminder-${reminderId}`).remove();
-                        } else {
-                            alert(data.message);
-                        }
-                    });
-                }
-            });
-        });
-        
-        // Search functionality
-        const searchInput = document.getElementById('searchInput');
-        const typeFilter = document.getElementById('typeFilter');
-        const searchButton = document.getElementById('searchButton');
-        const loadingIndicator = document.getElementById('loadingIndicator');
-        const reminderContainer = document.getElementById('reminderContainer');
-        
-        function performSearch() {
-            const query = searchInput.value.trim();
-            const type = typeFilter.value;
-            
-            loadingIndicator.classList.remove('d-none');
-            reminderContainer.style.opacity = '0.5';
-            
-            fetch(`/search_reminders?query=${encodeURIComponent(query)}&type=${encodeURIComponent(type)}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        reminderContainer.innerHTML = '';
-                        
-                        if (data.reminders.length === 0) {
-                            reminderContainer.innerHTML = `
-                                <div class="alert alert-info">
-                                    Không tìm thấy nhắc nhở nào phù hợp.
-                                </div>
-                            `;
-                            return;
-                        }
-                        
-                        data.reminders.forEach(reminder => {
-                            const reminderCard = createReminderCard(reminder);
-                            reminderContainer.appendChild(reminderCard);
-                        });
-                        
-                        // Reattach event listeners
-                        attachEventListeners();
-                    } else {
-                        alert(data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Có lỗi xảy ra khi tìm kiếm');
-                })
-                .finally(() => {
-                    loadingIndicator.classList.add('d-none');
-                    reminderContainer.style.opacity = '1';
-                });
-        }
-        
-        function createReminderCard(reminder) {
-            const div = document.createElement('div');
-            div.className = 'card mb-3';
-            div.id = `reminder-${reminder.id}`;
-            
-            div.innerHTML = `
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <h5 class="card-title">${reminder.title}</h5>
-                        <div class="btn-group">
-                            <button class="btn btn-sm btn-outline-primary edit-reminder" 
-                                    data-reminder-id="${reminder.id}"
-                                    data-title="${reminder.title}"
-                                    data-description="${reminder.description}"
-                                    data-type="${reminder.type}"
-                                    data-frequency="${reminder.frequency}"
-                                    data-time="${reminder.time}"
-                                    data-start-date="${reminder.start_date}"
-                                    data-end-date="${reminder.end_date}">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger delete-reminder" 
-                                    data-reminder-id="${reminder.id}">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
+<!-- Edit Modal -->
+<div class="modal fade" id="editReminderModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chỉnh sửa nhắc nhở</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editReminderForm">
+                    <input type="hidden" id="editReminderId">
+                    <div class="mb-3">
+                        <label>Tiêu đề</label>
+                        <input type="text" id="editTitle" name="title" class="form-control" required>
                     </div>
-                    <p class="card-text">${reminder.description}</p>
-                    <p class="card-text">
-                        <small class="text-muted">
-                            <i class="fas fa-clock me-1"></i>${reminder.time} - 
-                            <i class="fas fa-calendar me-1"></i>${reminder.frequency}
-                        </small>
-                    </p>
-                </div>
-            `;
-            
-            return div;
-        }
-        
-        function attachEventListeners() {
-            // Reattach edit and delete event listeners
-            document.querySelectorAll('.edit-reminder').forEach(button => {
-                button.addEventListener('click', function() {
-                    // ... existing edit reminder code ...
-                });
-            });
-            
-            document.querySelectorAll('.delete-reminder').forEach(button => {
-                button.addEventListener('click', function() {
-                    // ... existing delete reminder code ...
-                });
-            });
-        }
-        
-        // Add event listeners for search
-        searchButton.addEventListener('click', performSearch);
-        
-        searchInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                performSearch();
-            }
-        });
-        
-        typeFilter.addEventListener('change', performSearch);
-    });
-    </script>
-</body>
-</html>
+                    <div class="mb-3">
+                        <label>Mô tả</label>
+                        <textarea id="editDescription" name="description" class="form-control"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label>Loại nhắc nhở</label>
+                        <select id="editType" name="type" class="form-control" required>
+                            <option value="medicine">Uống thuốc</option>
+                            <option value="exercise">Tập thể dục</option>
+                            <option value="checkup">Khám định kỳ</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label>Tần suất</label>
+                        <select id="editFrequency" name="frequency" class="form-control" required>
+                            <option value="daily">Hàng ngày</option>
+                            <option value="weekly">Hàng tuần</option>
+                            <option value="monthly">Hàng tháng</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label>Thời gian</label>
+                        <input type="time" id="editTime" name="time" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>Ngày bắt đầu</label>
+                        <input type="date" id="editStartDate" name="start_date" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>Ngày kết thúc (không bắt buộc)</label>
+                        <input type="date" id="editEndDate" name="end_date" class="form-control">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" id="saveEditButton">Lưu</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/reminders_js.js') }}"></script>
+{% endblock %}

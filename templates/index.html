@@ -1,141 +1,87 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Health Checker</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link href="{{ url_for('static', filename='css/index_css.css') }}" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-</head>
-<body data-logged-in="{{ 'true' if session.username else 'false' }}">
-    <nav class="navbar navbar-expand-lg">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">
-                <img src="../static/images/logo.png" alt="Logo" onclick="window.location.href='/';">
-                Health Checker
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" 
-                    aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNavDropdown">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" 
-                           data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-home"></i> Trang Chủ
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                            <li><a class="dropdown-item" href="{{ url_for('file_analysis') }}">Phân Tích Hồ Sơ Y Tế</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('health_analysis') }}">Phân Tích Thể Trạng</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('ai_doctor') }}">Bác Sĩ AI</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('reminders') }}">Nhắc Nhở Sức Khỏe</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ url_for('history') }}">Lịch Sử Phân Tích</a></li>
-                        </ul>
-                    </li>
-                    {% if session.username %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('history') }}">
-                            <i class="fas fa-history"></i> Lịch Sử Phân Tích
-                        </a>
-                    </li>
-                    {% endif %}
-                </ul>
-                <ul class="navbar-nav">
-                    {% if session.username %}
-                        <li class="nav-item">
-                            <a href="{{ url_for('logout') }}" class="btn btn-outline-light">Đăng Xuất</a>
-                        </li>
-                    {% else %}
-                        <li class="nav-item">
-                            <a href="{{ url_for('login') }}" class="btn btn-outline-light">Đăng Nhập</a>
-                        </li>
-                    {% endif %}
-                </ul>
-            </div>
-        </div>
-    </nav>
+{% extends "base.html" %}
 
-    <div class="content-wrapper">
-        <div class="hero-section">
-            <div class="container">
-                <h1 class="display-4">Chào mừng đến với Health Checker</h1>
-                <p class="lead">Giải pháp chăm sóc sức khỏe thông minh với sự hỗ trợ của AI</p>
+{% block extra_css %}
+<link href="{{ url_for('static', filename='css/index_css.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block nav_title %}Health Checker{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="container">
+        <h1 class="display-4">Chào mừng đến với Health Checker</h1>
+        <p class="lead">Giải pháp chăm sóc sức khỏe thông minh với sự hỗ trợ của AI</p>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row">
+        <!-- Hàng 1 -->
+        <div class="col-md-4">
+            <div class="feature-card text-center" data-url="{{ url_for('file_analysis') }}">
+                <div class="feature-icon">📄</div>
+                <h3>Phân Tích Hồ Sơ Y Tế</h3>
+                <p>Phân tích chi tiết hồ sơ y tế và đơn thuốc của bạn một cách nhanh chóng và chính xác</p>
+                <a href="{{ url_for('file_analysis') }}" class="btn btn-primary check-login">Bắt đầu</a>
             </div>
         </div>
 
-        <div class="container py-5">
-            <div class="row">
-                <!-- Hàng 1 -->
-                <div class="col-md-4">
-                    <div class="feature-card text-center" data-url="{{ url_for('file_analysis') }}">
-                        <div class="feature-icon">📄</div>
-                        <h3>Phân Tích Hồ Sơ Y Tế</h3>
-                        <p>Phân tích chi tiết hồ sơ y tế và đơn thuốc của bạn một cách nhanh chóng và chính xác</p>
-                        <a href="{{ url_for('file_analysis') }}" class="btn btn-primary check-login">Bắt đầu</a>
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="feature-card text-center" data-url="{{ url_for('health_analysis') }}">
-                        <div class="feature-icon">❤️</div>
-                        <h3>Phân Tích Thể Trạng</h3>
-                        <p>Đánh giá sức khỏe dựa trên hình ảnh thể trạng với công nghệ AI tiên tiến</p>
-                        <a href="{{ url_for('health_analysis') }}" class="btn btn-primary check-login">Bắt đầu</a>
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="feature-card text-center" data-url="{{ url_for('ai_doctor') }}">
-                        <div class="feature-icon">👨‍⚕️</div>
-                        <h3>Bác Sĩ AI</h3>
-                        <p>Tư vấn sức khỏe trực tiếp với AI thông minh, hỗ trợ 24/7</p>
-                        <a href="{{ url_for('ai_doctor') }}" class="btn btn-primary check-login">Bắt đầu</a>
-                    </div>
-                </div>
-
-                <!-- Hàng 2 - Đã điều chỉnh -->
-                <div class="col-md-2"></div> <!-- Cột trống để căn giữa -->
-                <div class="col-md-4">
-                    <div class="feature-card text-center" data-url="{{ url_for('reminders') }}">
-                        <div class="feature-icon">⏰</div>
-                        <h3>Nhắc Nhở Sức Khỏe</h3>
-                        <p>Đặt lịch nhắc nhở uống thuốc, tập thể dục và khám định kỳ</p>
-                        <a href="{{ url_for('reminders') }}" class="btn btn-primary check-login">Bắt đầu</a>
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="feature-card text-center" data-url="{{ url_for('history') }}">
-                        <div class="feature-icon">📊</div>
-                        <h3>Lịch Sử Phân Tích</h3>
-                        <p>Xem lại toàn bộ lịch sử phân tích và tư vấn sức khỏe của bạn</p>
-                        <a href="{{ url_for('history') }}" class="btn btn-primary check-login">Bắt đầu</a>
-                    </div>
-                </div>
-                <div class="col-md-2"></div> <!-- Cột trống để căn giữa -->
+        <div class="col-md-4">
+            <div class="feature-card text-center" data-url="{{ url_for('health_analysis') }}">
+                <div class="feature-icon">❤️</div>
+                <h3>Phân Tích Thể Trạng</h3>
+                <p>Đánh giá sức khỏe dựa trên hình ảnh thể trạng với công nghệ AI tiên tiến</p>
+                <a href="{{ url_for('health_analysis') }}" class="btn btn-primary check-login">Bắt đầu</a>
             </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="feature-card text-center" data-url="{{ url_for('ai_doctor') }}">
+                <div class="feature-icon">👨‍⚕️</div>
+                <h3>Bác Sĩ AI</h3>
+                <p>Tư vấn sức khỏe trực tiếp với AI thông minh, hỗ trợ 24/7</p>
+                <a href="{{ url_for('ai_doctor') }}" class="btn btn-primary check-login">Bắt đầu</a>
+            </div>
+        </div>
+
+        <!-- Hàng 2 -->
+        <div class="col-md-2"></div>
+        <div class="col-md-4">
+            <div class="feature-card text-center" data-url="{{ url_for('reminders') }}">
+                <div class="feature-icon">⏰</div>
+                <h3>Nhắc Nhở Sức Khỏe</h3>
+                <p>Đặt lịch nhắc nhở uống thuốc, tập thể dục và khám định kỳ</p>
+                <a href="{{ url_for('reminders') }}" class="btn btn-primary check-login">Bắt đầu</a>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="feature-card text-center" data-url="{{ url_for('history') }}">
+                <div class="feature-icon">📊</div>
+                <h3>Lịch Sử Phân Tích</h3>
+                <p>Xem lại toàn bộ lịch sử phân tích và tư vấn sức khỏe của bạn</p>
+                <a href="{{ url_for('history') }}" class="btn btn-primary check-login">Bắt đầu</a>
+            </div>
+        </div>
+        <div class="col-md-2"></div>
+    </div>
+</div>
+
+<!-- Login Modal -->
+<div class="login-modal" id="loginModal">
+    <div class="login-modal-content">
+        <div class="login-modal-header">
+            <i class="fas fa-lock"></i>
+            <h2>Yêu Cầu Đăng Nhập</h2>
+        </div>
+        <div class="login-modal-body">
+            <p>Vui lòng đăng nhập để sử dụng tính năng này!</p>
+            <a href="{{ url_for('login') }}" class="btn btn-primary">Đăng Nhập Ngay</a>
         </div>
     </div>
+</div>
+{% endblock %}
 
-    <!-- Thêm modal vào cuối body, trước các script -->
-    <div class="login-modal" id="loginModal">
-        <div class="login-modal-content">
-            <div class="login-modal-header">
-                <i class="fas fa-lock"></i>
-                <h2>Yêu Cầu Đăng Nhập</h2>
-            </div>
-            <div class="login-modal-body">
-                <p>Vui lòng đăng nhập để sử dụng tính năng này!</p>
-                <a href="{{ url_for('login') }}" class="btn btn-primary">Đăng Nhập Ngay</a>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
-    <script src="{{ url_for('static', filename='js/index_js.js') }}"></script>
-</body>
-</html>
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/index_js.js') }}"></script>
+{% endblock %}
