@@ -1,107 +1,175 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Xử lý tìm kiếm và lọc
-    const searchInput = document.getElementById('searchInput');
-    const typeFilter = document.getElementById('typeFilter');
-    const searchButton = document.getElementById('searchButton');
-    const reminderCards = document.querySelectorAll('.reminder-card');
-
-    function filterReminders() {
-        const searchTerm = searchInput.value.toLowerCase();
-        const filterType = typeFilter.value;
-
-        reminderCards.forEach(card => {
-            const title = card.querySelector('.card-title').textContent.toLowerCase();
-            const description = card.querySelector('.card-text').textContent.toLowerCase();
-            const type = card.getAttribute('data-type');
-
-            const matchesSearch = title.includes(searchTerm) || description.includes(searchTerm);
-            const matchesType = filterType === '' || type === filterType;
-
-            card.style.display = matchesSearch && matchesType ? 'block' : 'none';
+    // Edit Reminder functionality
+    function initializeEditReminders() {
+        document.querySelectorAll('.edit-reminder').forEach(button => {
+            button.addEventListener('click', function() {
+                const reminderId = this.dataset.reminderId;
+                const modal = new bootstrap.Modal(document.getElementById('editReminderModal'));
+                
+                // Populate form fields
+                document.getElementById('editReminderId').value = reminderId;
+                document.getElementById('editTitle').value = this.dataset.title;
+                document.getElementById('editDescription').value = this.dataset.description;
+                document.getElementById('editType').value = this.dataset.type;
+                document.getElementById('editFrequency').value = this.dataset.frequency;
+                document.getElementById('editTime').value = this.dataset.time;
+                document.getElementById('editStartDate').value = this.dataset.startDate;
+                document.getElementById('editEndDate').value = this.dataset.endDate;
+                
+                modal.show();
+            });
         });
     }
 
-    searchButton.addEventListener('click', filterReminders);
-    searchInput.addEventListener('keyup', filterReminders);
-    typeFilter.addEventListener('change', filterReminders);
-
-    // Xử lý chỉnh sửa nhắc nhở
-    const editButtons = document.querySelectorAll('.edit-reminder');
-    const editModal = new bootstrap.Modal(document.getElementById('editReminderModal'));
-    const saveEditButton = document.getElementById('saveEditButton');
-
-    editButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const reminderId = this.getAttribute('data-reminder-id');
-            const title = this.getAttribute('data-title');
-            const description = this.getAttribute('data-description');
-            const type = this.getAttribute('data-type');
-            const frequency = this.getAttribute('data-frequency');
-            const time = this.getAttribute('data-time');
-            const startDate = this.getAttribute('data-start-date');
-            const endDate = this.getAttribute('data-end-date');
-
-            // Điền thông tin vào form chỉnh sửa
-            document.getElementById('editReminderId').value = reminderId;
-            document.getElementById('editTitle').value = title;
-            document.getElementById('editDescription').value = description;
-            document.getElementById('editType').value = type;
-            document.getElementById('editFrequency').value = frequency;
-            document.getElementById('editTime').value = time;
-            document.getElementById('editStartDate').value = startDate;
-            document.getElementById('editEndDate').value = endDate;
-
-            editModal.show();
+    // Save Edit functionality
+    function initializeSaveEdit() {
+        document.getElementById('saveEditButton').addEventListener('click', function() {
+            const reminderId = document.getElementById('editReminderId').value;
+            const formData = new FormData(document.getElementById('editReminderForm'));
+            
+            fetch(`/edit_reminder/${reminderId}`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            });
         });
-    });
+    }
 
-    // Xử lý lưu chỉnh sửa
-    saveEditButton.addEventListener('click', function() {
-        const formData = new FormData(document.getElementById('editReminderForm'));
-        const reminderId = document.getElementById('editReminderId').value;
-
-        fetch(`/edit_reminder/${reminderId}`, {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload(); // Tải lại trang để hiển thị cập nhật
-            } else {
-                alert('Có lỗi xảy ra khi cập nhật nhắc nhở');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Có lỗi xảy ra khi cập nhật nhắc nhở');
+    // Delete Reminder functionality
+    function initializeDeleteReminders() {
+        document.querySelectorAll('.delete-reminder').forEach(button => {
+            button.addEventListener('click', function() {
+                if (confirm('Bạn có chắc chắn muốn xóa nhắc nhở này?')) {
+                    const reminderId = this.dataset.reminderId;
+                    
+                    fetch(`/delete_reminder/${reminderId}`, {
+                        method: 'POST'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById(`reminder-${reminderId}`).remove();
+                        } else {
+                            alert(data.message);
+                        }
+                    });
+                }
+            });
         });
-    });
+    }
 
-    // Xử lý xóa nhắc nhở
-    const deleteButtons = document.querySelectorAll('.delete-reminder');
+    // Search functionality
+    function initializeSearch() {
+        const searchInput = document.getElementById('searchInput');
+        const typeFilter = document.getElementById('typeFilter');
+        const searchButton = document.getElementById('searchButton');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const reminderContainer = document.getElementById('reminderContainer');
 
-    deleteButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            if (confirm('Bạn có chắc chắn muốn xóa nhắc nhở này?')) {
-                const reminderId = this.getAttribute('data-reminder-id');
+        function createReminderCard(reminder) {
+            const div = document.createElement('div');
+            div.className = 'card mb-3';
+            div.id = `reminder-${reminder.id}`;
+            
+            div.innerHTML = `
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <h5 class="card-title">${reminder.title}</h5>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-primary edit-reminder" 
+                                    data-reminder-id="${reminder.id}"
+                                    data-title="${reminder.title}"
+                                    data-description="${reminder.description}"
+                                    data-type="${reminder.type}"
+                                    data-frequency="${reminder.frequency}"
+                                    data-time="${reminder.time}"
+                                    data-start-date="${reminder.start_date}"
+                                    data-end-date="${reminder.end_date}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger delete-reminder" 
+                                    data-reminder-id="${reminder.id}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <p class="card-text">${reminder.description}</p>
+                    <p class="card-text">
+                        <small class="text-muted">
+                            <i class="fas fa-clock me-1"></i>${reminder.time} - 
+                            <i class="fas fa-calendar me-1"></i>${reminder.frequency}
+                        </small>
+                    </p>
+                </div>
+            `;
+            
+            return div;
+        }
 
-                fetch(`/delete_reminder/${reminderId}`, {
-                    method: 'POST'
-                })
+        function performSearch() {
+            const query = searchInput.value.trim();
+            const type = typeFilter.value;
+            
+            loadingIndicator.classList.remove('d-none');
+            reminderContainer.style.opacity = '0.5';
+            
+            fetch(`/search_reminders?query=${encodeURIComponent(query)}&type=${encodeURIComponent(type)}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        location.reload(); // Tải lại trang để cập nhật danh sách
+                        reminderContainer.innerHTML = '';
+                        
+                        if (data.reminders.length === 0) {
+                            reminderContainer.innerHTML = `
+                                <div class="alert alert-info">
+                                    Không tìm thấy nhắc nhở nào phù hợp.
+                                </div>
+                            `;
+                            return;
+                        }
+                        
+                        data.reminders.forEach(reminder => {
+                            const reminderCard = createReminderCard(reminder);
+                            reminderContainer.appendChild(reminderCard);
+                        });
+                        
+                        // Reattach event listeners
+                        initializeEditReminders();
+                        initializeDeleteReminders();
                     } else {
-                        alert('Có lỗi xảy ra khi xóa nhắc nhở');
+                        alert(data.message);
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('Có lỗi xảy ra khi xóa nhắc nhở');
+                    alert('Có lỗi xảy ra khi tìm kiếm');
+                })
+                .finally(() => {
+                    loadingIndicator.classList.add('d-none');
+                    reminderContainer.style.opacity = '1';
                 });
+        }
+
+        // Add event listeners for search
+        searchButton.addEventListener('click', performSearch);
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performSearch();
             }
         });
-    });
-}); 
+        typeFilter.addEventListener('change', performSearch);
+    }
+
+    // Initialize all functionalities
+    initializeEditReminders();
+    initializeSaveEdit();
+    initializeDeleteReminders();
+    initializeSearch();
+});
