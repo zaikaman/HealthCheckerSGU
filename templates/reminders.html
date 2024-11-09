@@ -125,9 +125,28 @@
                     <h3>Danh sách nhắc nhở</h3>
                     <div class="reminder-list">
                         {% for reminder in reminders %}
-                        <div class="card mb-3">
+                        <div class="card mb-3" id="reminder-{{ reminder.id }}">
                             <div class="card-body">
-                                <h5 class="card-title">{{ reminder.title }}</h5>
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <h5 class="card-title">{{ reminder.title }}</h5>
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-outline-primary edit-reminder" 
+                                                data-reminder-id="{{ reminder.id }}"
+                                                data-title="{{ reminder.title }}"
+                                                data-description="{{ reminder.description }}"
+                                                data-type="{{ reminder.reminder_type }}"
+                                                data-frequency="{{ reminder.frequency }}"
+                                                data-time="{{ reminder.time.strftime('%H:%M') }}"
+                                                data-start-date="{{ reminder.start_date }}"
+                                                data-end-date="{{ reminder.end_date or '' }}">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger delete-reminder" 
+                                                data-reminder-id="{{ reminder.id }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
                                 <p class="card-text">{{ reminder.description }}</p>
                                 <p class="card-text">
                                     <small class="text-muted">
@@ -147,6 +166,91 @@
         </div>
     </div>
 
+    <!-- Edit Modal -->
+    <div class="modal fade" id="editReminderModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Chỉnh sửa nhắc nhở</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editReminderForm">
+                        <input type="hidden" id="editReminderId">
+                        <div class="mb-3">
+                            <label>Tiêu đề</label>
+                            <input type="text" id="editTitle" class="form-control" required>
+                        </div>
+                        <!-- Copy other form fields from the create form, with 'edit' prefix -->
+                        <!-- ... -->
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary" id="saveEditButton">Lưu</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Edit Reminder
+        document.querySelectorAll('.edit-reminder').forEach(button => {
+            button.addEventListener('click', function() {
+                const reminderId = this.dataset.reminderId;
+                const modal = new bootstrap.Modal(document.getElementById('editReminderModal'));
+                
+                // Populate form fields
+                document.getElementById('editReminderId').value = reminderId;
+                document.getElementById('editTitle').value = this.dataset.title;
+                // ... populate other fields ...
+                
+                modal.show();
+            });
+        });
+        
+        // Save Edit
+        document.getElementById('saveEditButton').addEventListener('click', function() {
+            const reminderId = document.getElementById('editReminderId').value;
+            const formData = new FormData(document.getElementById('editReminderForm'));
+            
+            fetch(`/edit_reminder/${reminderId}`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            });
+        });
+        
+        // Delete Reminder
+        document.querySelectorAll('.delete-reminder').forEach(button => {
+            button.addEventListener('click', function() {
+                if (confirm('Bạn có chắc chắn muốn xóa nhắc nhở này?')) {
+                    const reminderId = this.dataset.reminderId;
+                    
+                    fetch(`/delete_reminder/${reminderId}`, {
+                        method: 'POST'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById(`reminder-${reminderId}`).remove();
+                        } else {
+                            alert(data.message);
+                        }
+                    });
+                }
+            });
+        });
+    });
+    </script>
 </body>
 </html>

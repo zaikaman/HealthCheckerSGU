@@ -538,6 +538,65 @@ def reminders():
     
     return render_template('reminders.html', reminders=reminders)
 
+@app.route('/edit_reminder/<int:id>', methods=['POST'])
+def edit_reminder(id):
+    if 'username' not in session:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+        
+    try:
+        reminder = HealthReminder.query.get_or_404(id)
+        user = User.query.filter_by(username=session['username']).first()
+        
+        # Verify ownership
+        if reminder.user_email != user.email:
+            return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+            
+        # Update reminder details
+        reminder.title = request.form['title']
+        reminder.description = request.form['description']
+        reminder.reminder_type = request.form['type']
+        reminder.frequency = request.form['frequency']
+        
+        # Convert local time to UTC
+        time_str = request.form['time']
+        local_time = datetime.strptime(time_str, '%H:%M').time()
+        local_dt = datetime.combine(datetime.now().date(), local_time)
+        local_dt = vietnam_tz.localize(local_dt)
+        reminder.time = local_dt.astimezone(pytz.UTC).time()
+        
+        reminder.start_date = datetime.strptime(request.form['start_date'], '%Y-%m-%d').date()
+        reminder.end_date = datetime.strptime(request.form['end_date'], '%Y-%m-%d').date() if request.form['end_date'] else None
+        
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Cập nhật thành công'})
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error updating reminder: {str(e)}")
+        return jsonify({'success': False, 'message': 'Có lỗi xảy ra'}), 500
+
+@app.route('/delete_reminder/<int:id>', methods=['POST'])
+def delete_reminder(id):
+    if 'username' not in session:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+        
+    try:
+        reminder = HealthReminder.query.get_or_404(id)
+        user = User.query.filter_by(username=session['username']).first()
+        
+        # Verify ownership
+        if reminder.user_email != user.email:
+            return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+            
+        reminder.is_active = False  # Soft delete
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Xóa thành công'})
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error deleting reminder: {str(e)}")
+        return jsonify({'success': False, 'message': 'Có lỗi xảy ra'}), 500
+
 if __name__ == '__main__':
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
         os.makedirs(app.config['UPLOAD_FOLDER'])
