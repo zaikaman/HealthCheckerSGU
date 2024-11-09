@@ -597,6 +597,54 @@ def delete_reminder(id):
         logger.error(f"Error deleting reminder: {str(e)}")
         return jsonify({'success': False, 'message': 'Có lỗi xảy ra'}), 500
 
+@app.route('/search_reminders')
+def search_reminders():
+    if 'username' not in session:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+        
+    try:
+        user = User.query.filter_by(username=session['username']).first()
+        query = request.args.get('query', '').strip()
+        reminder_type = request.args.get('type', '')
+        
+        # Base query
+        reminders_query = HealthReminder.query.filter_by(
+            user_email=user.email,
+            is_active=True
+        )
+        
+        # Add search conditions
+        if query:
+            reminders_query = reminders_query.filter(
+                (HealthReminder.title.ilike(f'%{query}%')) |
+                (HealthReminder.description.ilike(f'%{query}%'))
+            )
+            
+        if reminder_type:
+            reminders_query = reminders_query.filter_by(reminder_type=reminder_type)
+            
+        reminders = reminders_query.order_by(HealthReminder.time).all()
+        
+        # Format reminders for JSON response
+        reminders_data = []
+        for reminder in reminders:
+            reminders_data.append({
+                'id': reminder.id,
+                'title': reminder.title,
+                'description': reminder.description,
+                'type': reminder.reminder_type,
+                'frequency': reminder.frequency,
+                'time': reminder.time.strftime('%H:%M'),
+                'start_date': reminder.start_date.strftime('%Y-%m-%d'),
+                'end_date': reminder.end_date.strftime('%Y-%m-%d') if reminder.end_date else ''
+            })
+            
+        return jsonify({'success': True, 'reminders': reminders_data})
+        
+    except Exception as e:
+        logger.error(f"Error searching reminders: {str(e)}")
+        return jsonify({'success': False, 'message': 'Có lỗi xảy ra'}), 500
+
 if __name__ == '__main__':
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
         os.makedirs(app.config['UPLOAD_FOLDER'])

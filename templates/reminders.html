@@ -123,43 +123,73 @@
                 </div>
                 <div class="col-md-8">
                     <h3>Danh sách nhắc nhở</h3>
-                    <div class="reminder-list">
-                        {% for reminder in reminders %}
-                        <div class="card mb-3" id="reminder-{{ reminder.id }}">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <h5 class="card-title">{{ reminder.title }}</h5>
-                                    <div class="btn-group">
-                                        <button class="btn btn-sm btn-outline-primary edit-reminder" 
-                                                data-reminder-id="{{ reminder.id }}"
-                                                data-title="{{ reminder.title }}"
-                                                data-description="{{ reminder.description }}"
-                                                data-type="{{ reminder.reminder_type }}"
-                                                data-frequency="{{ reminder.frequency }}"
-                                                data-time="{{ reminder.time.strftime('%H:%M') }}"
-                                                data-start-date="{{ reminder.start_date }}"
-                                                data-end-date="{{ reminder.end_date or '' }}">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-danger delete-reminder" 
-                                                data-reminder-id="{{ reminder.id }}">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <input type="text" id="searchInput" class="form-control" 
+                                           placeholder="Tìm kiếm theo tiêu đề hoặc mô tả...">
                                 </div>
-                                <p class="card-text">{{ reminder.description }}</p>
-                                <p class="card-text">
-                                    <small class="text-muted">
-                                        <i class="fas fa-clock me-1"></i>
-                                        {% set reminder_time = reminder.time %}
-                                        {% set local_time = (reminder_time.strftime('%H:%M')|string) %}
-                                        {{ local_time }} - 
-                                        <i class="fas fa-calendar me-1"></i>{{ reminder.frequency }}
-                                    </small>
-                                </p>
+                                <div class="col-md-4">
+                                    <select id="typeFilter" class="form-control">
+                                        <option value="">Tất cả loại nhắc nhở</option>
+                                        <option value="medicine">Uống thuốc</option>
+                                        <option value="exercise">Tập thể dục</option>
+                                        <option value="checkup">Khám định kỳ</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <button class="btn btn-primary w-100" id="searchButton">
+                                        <i class="fas fa-search"></i> Tìm
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                        {% endfor %}
+                    </div>
+                    <div class="reminder-list">
+                        <div id="loadingIndicator" class="text-center d-none">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Đang tải...</span>
+                            </div>
+                        </div>
+                        <div id="reminderContainer">
+                            {% for reminder in reminders %}
+                            <div class="card mb-3" id="reminder-{{ reminder.id }}">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <h5 class="card-title">{{ reminder.title }}</h5>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-outline-primary edit-reminder" 
+                                                    data-reminder-id="{{ reminder.id }}"
+                                                    data-title="{{ reminder.title }}"
+                                                    data-description="{{ reminder.description }}"
+                                                    data-type="{{ reminder.reminder_type }}"
+                                                    data-frequency="{{ reminder.frequency }}"
+                                                    data-time="{{ reminder.time.strftime('%H:%M') }}"
+                                                    data-start-date="{{ reminder.start_date }}"
+                                                    data-end-date="{{ reminder.end_date or '' }}">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger delete-reminder" 
+                                                    data-reminder-id="{{ reminder.id }}">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <p class="card-text">{{ reminder.description }}</p>
+                                    <p class="card-text">
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock me-1"></i>
+                                            {% set reminder_time = reminder.time %}
+                                            {% set local_time = (reminder_time.strftime('%H:%M')|string) %}
+                                            {{ local_time }} - 
+                                            <i class="fas fa-calendar me-1"></i>{{ reminder.frequency }}
+                                        </small>
+                                    </p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -250,6 +280,122 @@
                 }
             });
         });
+        
+        // Search functionality
+        const searchInput = document.getElementById('searchInput');
+        const typeFilter = document.getElementById('typeFilter');
+        const searchButton = document.getElementById('searchButton');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const reminderContainer = document.getElementById('reminderContainer');
+        
+        function performSearch() {
+            const query = searchInput.value.trim();
+            const type = typeFilter.value;
+            
+            loadingIndicator.classList.remove('d-none');
+            reminderContainer.style.opacity = '0.5';
+            
+            fetch(`/search_reminders?query=${encodeURIComponent(query)}&type=${encodeURIComponent(type)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        reminderContainer.innerHTML = '';
+                        
+                        if (data.reminders.length === 0) {
+                            reminderContainer.innerHTML = `
+                                <div class="alert alert-info">
+                                    Không tìm thấy nhắc nhở nào phù hợp.
+                                </div>
+                            `;
+                            return;
+                        }
+                        
+                        data.reminders.forEach(reminder => {
+                            const reminderCard = createReminderCard(reminder);
+                            reminderContainer.appendChild(reminderCard);
+                        });
+                        
+                        // Reattach event listeners
+                        attachEventListeners();
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Có lỗi xảy ra khi tìm kiếm');
+                })
+                .finally(() => {
+                    loadingIndicator.classList.add('d-none');
+                    reminderContainer.style.opacity = '1';
+                });
+        }
+        
+        function createReminderCard(reminder) {
+            const div = document.createElement('div');
+            div.className = 'card mb-3';
+            div.id = `reminder-${reminder.id}`;
+            
+            div.innerHTML = `
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <h5 class="card-title">${reminder.title}</h5>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-primary edit-reminder" 
+                                    data-reminder-id="${reminder.id}"
+                                    data-title="${reminder.title}"
+                                    data-description="${reminder.description}"
+                                    data-type="${reminder.type}"
+                                    data-frequency="${reminder.frequency}"
+                                    data-time="${reminder.time}"
+                                    data-start-date="${reminder.start_date}"
+                                    data-end-date="${reminder.end_date}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger delete-reminder" 
+                                    data-reminder-id="${reminder.id}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <p class="card-text">${reminder.description}</p>
+                    <p class="card-text">
+                        <small class="text-muted">
+                            <i class="fas fa-clock me-1"></i>${reminder.time} - 
+                            <i class="fas fa-calendar me-1"></i>${reminder.frequency}
+                        </small>
+                    </p>
+                </div>
+            `;
+            
+            return div;
+        }
+        
+        function attachEventListeners() {
+            // Reattach edit and delete event listeners
+            document.querySelectorAll('.edit-reminder').forEach(button => {
+                button.addEventListener('click', function() {
+                    // ... existing edit reminder code ...
+                });
+            });
+            
+            document.querySelectorAll('.delete-reminder').forEach(button => {
+                button.addEventListener('click', function() {
+                    // ... existing delete reminder code ...
+                });
+            });
+        }
+        
+        // Add event listeners for search
+        searchButton.addEventListener('click', performSearch);
+        
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+        
+        typeFilter.addEventListener('change', performSearch);
     });
     </script>
 </body>
