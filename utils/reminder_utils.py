@@ -14,6 +14,9 @@ vietnam_tz = pytz.timezone('Asia/Ho_Chi_Minh')
 # Thêm biến global để kiểm tra scheduler đã được khởi tạo chưa
 scheduler_initialized = False
 
+# Thêm cache để lưu nội dung email đã gửi
+sent_email_contents = {}
+
 def send_reminder_email(reminder, app, mail):
     """Gửi email nhắc nhở cho người dùng"""
     try:
@@ -38,13 +41,12 @@ def send_reminder_email(reminder, app, mail):
             'checkup': 'Khám định kỳ'
         }
         
-        msg = Message(
-            subject=f'Nhắc nhở {reminder_types.get(reminder.reminder_type, "")}: {reminder.title}',
-            sender=app.config['MAIL_DEFAULT_SENDER'],
-            recipients=[reminder.user_email]
-        )
+        # Tạo key cho cache
+        current_minute = datetime.now().strftime('%Y%m%d%H%M')
+        cache_key = f"{reminder.user_email}_{current_minute}"
         
-        msg.html = f'''
+        # Tạo nội dung email
+        email_content = f'''
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                 <h2 style="color: #007bff;">Nhắc nhở {reminder_types.get(reminder.reminder_type, "")}</h2>
                 <div style="background: #f8f9fa; padding: 20px; border-radius: 5px;">
@@ -64,7 +66,30 @@ def send_reminder_email(reminder, app, mail):
             </div>
         '''
         
+        # Kiểm tra nếu đã gửi email có nội dung giống hệt trong phút hiện tại
+        if cache_key in sent_email_contents and sent_email_contents[cache_key] == email_content:
+            logger.info(f"Skipping duplicate email for {reminder.user_email}")
+            return False
+            
+        msg = Message(
+            subject=f'Nhắc nhở {reminder_types.get(reminder.reminder_type, "")}: {reminder.title}',
+            sender=app.config['MAIL_DEFAULT_SENDER'],
+            recipients=[reminder.user_email]
+        )
+        
+        msg.html = email_content
         mail.send(msg)
+        
+        # Lưu nội dung email vào cache
+        sent_email_contents[cache_key] = email_content
+        
+        # Xóa cache cũ (giữ lại cache trong 5 phút)
+        current_time = datetime.now()
+        old_keys = [k for k in sent_email_contents.keys() 
+                   if datetime.strptime(k.split('_')[1], '%Y%m%d%H%M') < current_time - timedelta(minutes=5)]
+        for k in old_keys:
+            del sent_email_contents[k]
+            
         logger.info(f"Sent reminder email to {reminder.user_email}")
         return True
         
