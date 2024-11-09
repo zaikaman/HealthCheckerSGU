@@ -113,12 +113,12 @@ def init_reminder_scheduler(app, mail, HealthReminder):
                 logger.error(f"Error in check_and_send_reminders: {str(e)}")
                 logger.error(traceback.format_exc())
     
-    # Chạy kiểm tra mỗi 30 giây
+    # Chạy kiểm tra vào mỗi giây thứ 0 của mỗi phút
     job = scheduler.add_job(
-        check_and_send_reminders, 
-        'interval', 
-        seconds=3,
-        id='health_reminder_job',
+        check_and_send_reminders,
+        'cron',
+        second=0,
+        id='health_reminder_job', 
         replace_existing=True
     )
     
