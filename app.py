@@ -14,7 +14,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import logging
 from utils.email_utils import generate_confirmation_token, send_confirmation_email
 from utils.file_utils import allowed_file, add_column_if_not_exists
-from utils.audio_utils import stream_text_to_speech
+from utils.audio_utils import generate_text_to_speech
 from utils.validation_utils import is_valid_email
 import traceback
 from utils.reminder_utils import init_reminder_scheduler, shutdown_scheduler
@@ -412,51 +412,51 @@ def analyze_audio():
         analysis_result = analyze_audio_with_gemini(filepath)
 
         if analysis_result:
-            # Tạo audio response từ ElevenLabs
-            audio_stream = stream_text_to_speech(analysis_result, client)
+            # Generate audio response from ElevenLabs
+            audio_data = generate_text_to_speech(analysis_result, client)
             
-            user = User.query.filter_by(username=session['username']).first()
-            analysis = AiDoctor(
-                email=user.email,
-                input=audio_url,
-                output=analysis_result
-            )
-            db.session.add(analysis)
-            db.session.commit()
+            if audio_data:
+                # Save audio response to temporary file
+                audio_filename = f"response_{timestamp}.mp3"
+                audio_path = os.path.join(app.config['UPLOAD_FOLDER'], audio_filename)
+                
+                with open(audio_path, 'wb') as f:
+                    f.write(audio_data)
+            
+                # Save to database
+                user = User.query.filter_by(username=session['username']).first()
+                analysis = AiDoctor(
+                    email=user.email,
+                    input=audio_url,
+                    output=analysis_result
+                )
+                db.session.add(analysis)
+                db.session.commit()
 
-            # Xóa file local sau khi đã upload xong
-            os.remove(filepath)
+                # Xóa file audio gốc sau khi đã upload xong
+                os.remove(filepath)
 
-            return jsonify({
-                "result": analysis_result,
-                "stream_url": url_for('stream_audio', result=analysis_result)
-            })
+                return jsonify({
+                    "result": analysis_result,
+                    "audio_url": url_for('uploaded_file', filename=audio_filename)
+                })
+            else:
+                # Nếu không tạo được audio response
+                if os.path.exists(filepath):
+                    os.remove(filepath)
+                return jsonify({"result": "Lỗi: Không thể tạo audio response."}), 500
         else:
+            # Nếu không phân tích được audio
             if os.path.exists(filepath):
                 os.remove(filepath)
             return jsonify({"result": "Lỗi: Không thể phân tích âm thanh."}), 500
 
     except Exception as e:
         print(f"Error: {str(e)}")
-        if os.path.exists(filepath):
+        # Đảm bảo xóa file tạm nếu có lỗi
+        if 'filepath' in locals() and os.path.exists(filepath):
             os.remove(filepath)
         return jsonify({"result": "Lỗi: Không thể xử lý tệp âm thanh."}), 500
-
-@app.route('/stream_audio')
-def stream_audio():
-    analysis_result = request.args.get('result')
-    
-    if analysis_result:
-        audio_stream = stream_text_to_speech(analysis_result, client)
-
-        def generate_audio():
-            for chunk in audio_stream:
-                if chunk:
-                    yield chunk
-
-        return Response(generate_audio(), mimetype="audio/mpeg")
-    else:
-        return jsonify({"result": "Lỗi: Không có kết quả phân tích."}), 400
 
 @app.route('/history')
 def history():

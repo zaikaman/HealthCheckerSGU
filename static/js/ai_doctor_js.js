@@ -74,10 +74,12 @@ function handleAnalysisSuccess(data) {
 
     typeText("analysisResult", cleanedResult);
 
-    if (data.stream_url) {
+    if (data.audio_url) {
         const audioPlayer = document.getElementById("audioPlayer");
-        audioPlayer.src = data.stream_url;
-        audioPlayer.play().catch(console.error);
+        audioPlayer.src = data.audio_url;
+        audioPlayer.onloadeddata = function() {
+            audioPlayer.play().catch(console.error);
+        };
     }
 }
 
