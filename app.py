@@ -138,9 +138,6 @@ def initialize_scheduler():
         _scheduler_initialized = True
         logger.info("Scheduler initialized for the first time")
 
-# Sau khi khởi tạo app, db, mail
-initialize_scheduler()
-
 # Thêm route để kiểm tra trạng thái scheduler
 @app.route('/scheduler-status')
 def scheduler_status():
