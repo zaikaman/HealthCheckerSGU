@@ -93,18 +93,34 @@ function createImageModal(src) {
 
 // Initialize custom audio players
 function initializeAudioPlayers() {
-    document.querySelectorAll('audio').forEach(audio => {
-        const wrapper = document.createElement('div');
-        wrapper.className = 'audio-player';
-        audio.parentNode.insertBefore(wrapper, audio);
-        wrapper.appendChild(audio);
+    document.querySelectorAll('.history-file audio').forEach(audio => {
+        // Thêm class cho styling
+        audio.classList.add('custom-audio-player');
         
-        audio.addEventListener('play', () => {
-            wrapper.classList.add('playing');
+        // Thêm controls mới
+        const audioContainer = document.createElement('div');
+        audioContainer.className = 'audio-player-container';
+        
+        // Wrap audio element
+        audio.parentNode.insertBefore(audioContainer, audio);
+        audioContainer.appendChild(audio);
+        
+        // Thêm loading indicator
+        const loadingIndicator = document.createElement('div');
+        loadingIndicator.className = 'loading-indicator';
+        audioContainer.appendChild(loadingIndicator);
+        
+        // Xử lý sự kiện audio
+        audio.addEventListener('playing', () => {
+            audioContainer.classList.add('playing');
         });
         
         audio.addEventListener('pause', () => {
-            wrapper.classList.remove('playing');
+            audioContainer.classList.remove('playing');
+        });
+        
+        audio.addEventListener('ended', () => {
+            audioContainer.classList.remove('playing');
         });
     });
 }
