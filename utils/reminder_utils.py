@@ -9,24 +9,49 @@ scheduler = BackgroundScheduler()
 def send_reminder_email(reminder, app, mail):
     """Gửi email nhắc nhở cho người dùng"""
     try:
+        # Kiểm tra tần suất gửi
+        current_date = datetime.now().date()
+        should_send = False
+        
+        if reminder.frequency == 'daily':
+            should_send = True
+        elif reminder.frequency == 'weekly' and current_date.weekday() == reminder.start_date.weekday():
+            should_send = True
+        elif reminder.frequency == 'monthly' and current_date.day == reminder.start_date.day:
+            should_send = True
+            
+        if not should_send:
+            return False
+
+        # Tạo nội dung email
+        reminder_types = {
+            'medicine': 'Uống thuốc',
+            'exercise': 'Tập thể dục',
+            'checkup': 'Khám định kỳ'
+        }
+        
         msg = Message(
-            subject=f'Nhắc nhở: {reminder.title}',
+            subject=f'Nhắc nhở {reminder_types.get(reminder.reminder_type, "")}: {reminder.title}',
             sender=app.config['MAIL_DEFAULT_SENDER'],
             recipients=[reminder.user_email]
         )
         
         msg.html = f'''
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #007bff;">Nhắc nhở sức khỏe</h2>
+                <h2 style="color: #007bff;">Nhắc nhở {reminder_types.get(reminder.reminder_type, "")}</h2>
                 <div style="background: #f8f9fa; padding: 20px; border-radius: 5px;">
                     <h3 style="color: #333;">{reminder.title}</h3>
                     <p style="color: #666;">{reminder.description}</p>
                     <p style="color: #666;">
                         <strong>Thời gian:</strong> {reminder.time.strftime('%H:%M')}
+                        <br>
+                        <strong>Tần suất:</strong> {reminder.frequency}
                     </p>
                 </div>
                 <p style="color: #666; font-size: 12px; margin-top: 20px;">
                     Email này được gửi tự động từ Health Checker.
+                    <br>
+                    Thời gian gửi: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}
                 </p>
             </div>
         '''

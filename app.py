@@ -81,13 +81,16 @@ class HealthReminder(db.Model):
     user_email = db.Column(db.String(120), nullable=False)
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
-    reminder_type = db.Column(db.String(50), nullable=False)
-    frequency = db.Column(db.String(50), nullable=False)
+    reminder_type = db.Column(db.String(50), nullable=False)  # medicine, exercise, checkup
+    frequency = db.Column(db.String(50), nullable=False)  # daily, weekly, monthly
     time = db.Column(db.Time, nullable=False)
     start_date = db.Column(db.Date, nullable=False)
     end_date = db.Column(db.Date)
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<HealthReminder {self.title}>'
 
 # Tạo cơ sở dữ liệu nếu chưa tồn tại
 with app.app_context():
@@ -456,22 +459,43 @@ def reminders():
     user = User.query.filter_by(username=session['username']).first()
     
     if request.method == 'POST':
-        reminder = HealthReminder(
-            user_email=user.email,
-            title=request.form['title'],
-            description=request.form['description'],
-            reminder_type=request.form['type'],
-            frequency=request.form['frequency'],
-            time=datetime.strptime(request.form['time'], '%H:%M').time(),
-            start_date=datetime.strptime(request.form['start_date'], '%Y-%m-%d').date(),
-            end_date=datetime.strptime(request.form['end_date'], '%Y-%m-%d').date() if request.form['end_date'] else None
-        )
-        db.session.add(reminder)
-        db.session.commit()
-        
-        flash('Đã tạo nhắc nhở mới!', 'success')
+        try:
+            # Lấy dữ liệu từ form
+            title = request.form['title']
+            description = request.form['description']
+            reminder_type = request.form['type']
+            frequency = request.form['frequency']
+            time = datetime.strptime(request.form['time'], '%H:%M').time()
+            start_date = datetime.strptime(request.form['start_date'], '%Y-%m-%d').date()
+            end_date = datetime.strptime(request.form['end_date'], '%Y-%m-%d').date() if request.form['end_date'] else None
+
+            # Tạo reminder mới
+            reminder = HealthReminder(
+                user_email=user.email,
+                title=title,
+                description=description,
+                reminder_type=reminder_type,
+                frequency=frequency,
+                time=time,
+                start_date=start_date,
+                end_date=end_date,
+                is_active=True
+            )
+            
+            db.session.add(reminder)
+            db.session.commit()
+            
+            logger.info(f"Created new reminder for user {user.email}")
+            flash('Đã tạo nhắc nhở mới thành công!', 'success')
+            
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Error creating reminder: {str(e)}")
+            flash('Có lỗi xảy ra khi tạo nhắc nhở. Vui lòng thử lại.', 'danger')
+            
         return redirect(url_for('reminders'))
         
+    # Lấy danh sách nhắc nhở
     reminders = HealthReminder.query.filter_by(
         user_email=user.email,
         is_active=True
