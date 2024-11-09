@@ -88,7 +88,10 @@
             <div id="analysisResult" class="analysis-result"></div>
         
             <div class="audio-player-container">
-                <audio id="audioPlayer" controls 
+                <audio id="audioPlayer" 
+                       controls 
+                       playsinline
+                       preload="auto"
                        onplay="toggleMediaDisplay('video')" 
                        onpause="toggleMediaDisplay('image')" 
                        onended="toggleMediaDisplay('image')">
