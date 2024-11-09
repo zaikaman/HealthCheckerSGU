@@ -84,25 +84,10 @@ function handleAnalysisSuccess(data) {
 
     if (data.audio_url) {
         const audioPlayer = document.getElementById("audioPlayer");
-        const source = audioPlayer.querySelector('source') || document.createElement('source');
-        source.src = data.audio_url;
-        source.type = 'video/mp4';
-        
-        if (!audioPlayer.querySelector('source')) {
-            audioPlayer.appendChild(source);
-        }
-        
-        audioPlayer.load();
-
-        const playPromise = audioPlayer.play();
-        
-        if (playPromise !== undefined) {
-            playPromise.then(() => {
-                console.log('Audio started playing automatically');
-            }).catch(error => {
-                console.warn('Autoplay was prevented:', error);
-            });
-        }
+        audioPlayer.src = data.audio_url;
+        audioPlayer.onloadeddata = function() {
+            audioPlayer.play().catch(console.error);
+        };
     }
 }
 
