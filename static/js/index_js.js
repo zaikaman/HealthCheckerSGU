@@ -125,6 +125,15 @@ document.addEventListener('DOMContentLoaded', function() {
             showLoginModal(e);
         });
     }
+
+    // Thêm hiệu ứng fade in khi load trang
+    const cards = document.querySelectorAll('.feature-card');
+    cards.forEach((card, index) => {
+        setTimeout(() => {
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
 });
 
 // Feature card click handler
@@ -132,6 +141,13 @@ function handleFeatureCardClick(url) {
     const transition = document.createElement('div');
     transition.className = 'page-transition';
     document.body.appendChild(transition);
+
+    // Thêm hiệu ứng fade out cho card
+    const cards = document.querySelectorAll('.feature-card');
+    cards.forEach(card => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+    });
 
     setTimeout(() => {
         window.location.href = url;

@@ -49,26 +49,37 @@ body {
     background: rgba(255, 255, 255, 0.85);
     border-radius: 10px;
     padding: 30px;
-    margin: 20px 0;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
+    margin-bottom: 30px;
+    transition: all 0.3s ease;
+    cursor: pointer;
     height: 100%;
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
-    border: 2px solid black;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .feature-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-    background: rgba(255, 255, 255, 0.95);
-    border: 2px solid black;
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
 }
 
 .feature-icon {
-    font-size: 2.5rem;
-    color: #007bff;
+    font-size: 3rem;
     margin-bottom: 20px;
+}
+
+.row {
+    margin-top: 30px;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+/* Đảm bảo các card cùng chiều cao trong một hàng */
+.row > [class*='col-'] {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 30px;
 }
 
 .navbar {
