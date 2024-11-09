@@ -21,6 +21,24 @@ document.addEventListener('DOMContentLoaded', function() {
             this.style.transform = 'translateY(0)';
             this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
         });
+
+        card.addEventListener('click', () => {
+            const url = card.dataset.url;
+            const transition = document.createElement('div');
+            transition.className = 'page-transition';
+            document.body.appendChild(transition);
+
+            // Thêm hiệu ứng fade out cho card
+            const cards = document.querySelectorAll('.feature-card');
+            cards.forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+            });
+
+            setTimeout(() => {
+                window.location.href = url;
+            }, 500);
+        });
     });
 
     // Hero section parallax effect
@@ -135,21 +153,3 @@ document.addEventListener('DOMContentLoaded', function() {
         }, index * 100);
     });
 });
-
-// Feature card click handler
-function handleFeatureCardClick(url) {
-    const transition = document.createElement('div');
-    transition.className = 'page-transition';
-    document.body.appendChild(transition);
-
-    // Thêm hiệu ứng fade out cho card
-    const cards = document.querySelectorAll('.feature-card');
-    cards.forEach(card => {
-        card.style.opacity = '0';
-        card.style.transform = 'translateY(20px)';
-    });
-
-    setTimeout(() => {
-        window.location.href = url;
-    }, 500);
-}
