@@ -540,8 +540,6 @@ if __name__ == '__main__':
         os.makedirs(app.config['UPLOAD_FOLDER'])
     port = int(os.environ.get("PORT", 5000))
     
-    # Chỉ khởi chạy scheduler trong tiến trình chính
-    if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
-        initialize_scheduler()
+    initialize_scheduler()
     
     app.run(host='0.0.0.0', port=port, debug=True, use_reloader=True)
