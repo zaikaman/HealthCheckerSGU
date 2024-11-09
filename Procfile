@@ -1,1 +1,1 @@
-gunicorn app:app --preload
+gunicorn app:app
