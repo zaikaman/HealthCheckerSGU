@@ -79,8 +79,9 @@ class AiDoctor(db.Model):
     __tablename__ = 'tbl_ai_doctor'
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), nullable=False)
-    input = db.Column(db.Text, nullable=False)  # Lưu file audio
-    output = db.Column(db.Text, nullable=False)  # Lưu kết quả phân tích
+    input = db.Column(db.Text, nullable=False)  # User's audio input
+    output = db.Column(db.Text, nullable=False)  # AI text response
+    response_audio = db.Column(db.Text, nullable=True)  # ElevenLabs audio URL
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class HealthReminder(db.Model):
@@ -422,38 +423,48 @@ def analyze_audio():
 
     audio_file = request.files['audio']
     filepath = None
+    audio_response_path = None
     
     try:
-        # Lưu file audio vào uploads trước
+        # Save user's audio input
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         filename = f"audio_{timestamp}.webm"
         filepath = os.path.join('uploads', filename)
         audio_file.save(filepath)
 
-        # Upload lên Cloudinary từ file local
+        # Upload user's audio to Cloudinary
         upload_result = cloudinary.uploader.upload(filepath,
             resource_type="video",
             public_id=f"ai_doctor/{filename}",
             folder="health_checker")
         audio_url = upload_result['secure_url']
 
-        # Phân tích audio
+        # Analyze audio
         analysis_result = analyze_audio_with_gemini(filepath)
 
         if analysis_result:
-            # Generate audio response
+            # Generate ElevenLabs audio response
             audio_data = generate_text_to_speech(analysis_result, client)
             
             if audio_data:
-                # Save audio response
-                audio_filename = f"response_{timestamp}.mp3"
-                audio_path = os.path.join(app.config['UPLOAD_FOLDER'], audio_filename)
+                # Save ElevenLabs audio response
+                audio_response_filename = f"response_{timestamp}.mp3"
+                audio_response_path = os.path.join('uploads', audio_response_filename)
                 
-                with open(audio_path, 'wb') as f:
+                with open(audio_response_path, 'wb') as f:
                     f.write(audio_data)
 
+                # Upload ElevenLabs audio to Cloudinary
+                response_upload_result = cloudinary.uploader.upload(
+                    audio_response_path,
+                    resource_type="video",
+                    public_id=f"ai_doctor/response_{audio_response_filename}",
+                    folder="health_checker"
+                )
+                response_audio_url = response_upload_result['secure_url']
+
+                # Save to database
                 try:
-                    # Wrap database operations in a transaction
                     with db.session.begin_nested():
                         user = User.query.filter_by(username=session['username']).first()
                         if not user:
@@ -462,39 +473,33 @@ def analyze_audio():
                         analysis = AiDoctor(
                             email=user.email,
                             input=audio_url,
-                            output=analysis_result
+                            output=analysis_result,
+                            response_audio=response_audio_url
                         )
                         db.session.add(analysis)
-                    
-                    # Commit the transaction
                     db.session.commit()
                     
                 except Exception as db_error:
                     logger.error(f"Database error: {str(db_error)}")
                     db.session.rollback()
-                    # Continue even if database save fails
-                    
-                finally:
-                    # Clean up the original audio file
-                    if filepath and os.path.exists(filepath):
-                        os.remove(filepath)
 
                 return jsonify({
                     "result": analysis_result,
-                    "audio_url": url_for('uploaded_file', filename=audio_filename)
+                    "audio_url": response_audio_url
                 })
-            
+
         return jsonify({"result": analysis_result})
         
     except Exception as e:
         logger.error(f"Error in analyze_audio: {str(e)}")
-        # Clean up files in case of error
-        if filepath and os.path.exists(filepath):
-            os.remove(filepath)
         return jsonify({"result": "Lỗi: Không thể xử lý tệp âm thanh."}), 500
         
     finally:
-        # Ensure database session is cleaned up
+        # Clean up temporary files
+        if filepath and os.path.exists(filepath):
+            os.remove(filepath)
+        if audio_response_path and os.path.exists(audio_response_path):
+            os.remove(audio_response_path)
         db.session.remove()
 
 @app.route('/history')

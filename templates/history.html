@@ -157,11 +157,22 @@
                         </div>
                         <div class="history-type">Tư vấn bác sĩ AI</div>
                         <div class="history-file">
-                            <audio controls>
-                                <source src="{{ analysis.input }}" type="audio/mpeg">
-                                <source src="{{ analysis.input }}" type="audio/webm">
-                                Trình duyệt của bạn không hỗ trợ phát audio.
-                            </audio>
+                            <div class="audio-section">
+                                <div class="audio-label">Câu hỏi của bạn:</div>
+                                <audio controls class="custom-audio-player">
+                                    <source src="{{ analysis.input }}" type="audio/webm">
+                                    Trình duyệt của bạn không hỗ trợ phát audio.
+                                </audio>
+                            </div>
+                            {% if analysis.response_audio %}
+                            <div class="audio-section mt-3">
+                                <div class="audio-label">Phản hồi từ AI:</div>
+                                <audio controls class="custom-audio-player">
+                                    <source src="{{ analysis.response_audio }}" type="audio/mpeg">
+                                    Trình duyệt của bạn không hỗ trợ phát audio.
+                                </audio>
+                            </div>
+                            {% endif %}
                         </div>
                         <div class="history-content">
                             <pre>{{ analysis.output }}</pre>
