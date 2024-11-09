@@ -82,10 +82,10 @@ def init_reminder_scheduler(app, mail, HealthReminder):
     def check_and_send_reminders():
         with app.app_context():
             try:
+                # Sử dụng thời gian local
                 current_time = datetime.now()
                 logger.info(f"[Scheduler] Running check at {current_time}")
                 
-                # Lấy tất cả nhắc nhở đang active
                 reminders = HealthReminder.query.filter(
                     HealthReminder.is_active == True,
                     HealthReminder.start_date <= current_time.date(),
@@ -101,7 +101,6 @@ def init_reminder_scheduler(app, mail, HealthReminder):
                     if (current_time.hour == reminder_datetime.hour and 
                         current_time.minute == reminder_datetime.minute):
                         
-                        # Tạo cache_key
                         cache_key = f"{reminder.id}_{current_time.strftime('%Y%m%d%H%M')}"
                         
                         if cache_key in sent_reminders:
@@ -109,8 +108,7 @@ def init_reminder_scheduler(app, mail, HealthReminder):
                             continue
                         
                         if send_reminder_email(reminder, app, mail, cache_key):
-                            pass  # Đã thêm vào sent_reminders trong hàm send_reminder_email
-                            
+                            pass
             except Exception as e:
                 logger.error(f"Error in check_and_send_reminders: {str(e)}")
                 logger.error(traceback.format_exc())

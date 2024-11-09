@@ -491,30 +491,29 @@ def reminders():
     
     if request.method == 'POST':
         try:
-            # Lấy dữ liệu từ form
             title = request.form['title']
             description = request.form['description']
             reminder_type = request.form['type']
             frequency = request.form['frequency']
             time_str = request.form['time']
-            local_time = datetime.strptime(time_str, '%H:%M').time()
-            local_dt = datetime.combine(datetime.now().date(), local_time)
-            local_dt = vietnam_tz.localize(local_dt)
-            utc_time = local_dt.astimezone(pytz.UTC).time()
+            
+            # Không cần chuyển đổi timezone nữa, lưu trực tiếp thời gian local
+            time = datetime.strptime(time_str, '%H:%M').time()
+            
             start_date = datetime.strptime(request.form['start_date'], '%Y-%m-%d').date()
             end_date = datetime.strptime(request.form['end_date'], '%Y-%m-%d').date() if request.form['end_date'] else None
 
-            # Tạo reminder mới
             reminder = HealthReminder(
                 user_email=user.email,
                 title=title,
                 description=description,
                 reminder_type=reminder_type,
                 frequency=frequency,
-                time=utc_time,
+                time=time,  # Lưu trực tiếp thời gian local
                 start_date=start_date,
                 end_date=end_date,
-                is_active=True
+                is_active=True,
+                created_at=datetime.now()  # Sử dụng thời gian local
             )
             
             db.session.add(reminder)
@@ -547,22 +546,17 @@ def edit_reminder(id):
         reminder = HealthReminder.query.get_or_404(id)
         user = User.query.filter_by(username=session['username']).first()
         
-        # Verify ownership
         if reminder.user_email != user.email:
             return jsonify({'success': False, 'message': 'Unauthorized'}), 401
             
-        # Update reminder details
         reminder.title = request.form['title']
         reminder.description = request.form['description']
         reminder.reminder_type = request.form['type']
         reminder.frequency = request.form['frequency']
         
-        # Convert local time to UTC
+        # Lưu trực tiếp thời gian local
         time_str = request.form['time']
-        local_time = datetime.strptime(time_str, '%H:%M').time()
-        local_dt = datetime.combine(datetime.now().date(), local_time)
-        local_dt = vietnam_tz.localize(local_dt)
-        reminder.time = local_dt.astimezone(pytz.UTC).time()
+        reminder.time = datetime.strptime(time_str, '%H:%M').time()
         
         reminder.start_date = datetime.strptime(request.form['start_date'], '%Y-%m-%d').date()
         reminder.end_date = datetime.strptime(request.form['end_date'], '%Y-%m-%d').date() if request.form['end_date'] else None
