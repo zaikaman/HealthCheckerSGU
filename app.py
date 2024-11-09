@@ -43,7 +43,7 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
 }
 
 # Khởi tạo ElevenLabs client
-client = ElevenLabs(api_key="sk_0282f7067c9709491cbe2e584d4d993a0cb07b2a1fe0aa42")
+client = ElevenLabs(api_key="sk_0365985c4b6e86f4679a5cdec92c70e91fbbec57bbb39777")
 
 analysis_result = ""
 
