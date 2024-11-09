@@ -41,24 +41,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Hero section parallax effect
-    const heroSection = document.querySelector('.hero-section');
-    let ticking = false;
-
-    window.addEventListener('scroll', function() {
-        if (!ticking) {
-            window.requestAnimationFrame(function() {
-                if (heroSection) {
-                    const scrolled = window.pageYOffset;
-                    const translateY = Math.max(0, scrolled * 0.5);
-                    heroSection.style.transform = `translate3d(0, ${translateY}px, 0)`;
-                }
-                ticking = false;
-            });
-            ticking = true;
-        }
-    });
-
     // Navbar scroll behavior
     const navbar = document.querySelector('.navbar');
     let lastScrollTop = 0;
