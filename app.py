@@ -138,6 +138,9 @@ def initialize_scheduler():
         _scheduler_initialized = True
         logger.info("Scheduler initialized for the first time")
 
+# Sau khi khởi tạo app, db, mail
+initialize_scheduler()
+
 # Thêm route để kiểm tra trạng thái scheduler
 @app.route('/scheduler-status')
 def scheduler_status():
@@ -540,6 +543,8 @@ if __name__ == '__main__':
         os.makedirs(app.config['UPLOAD_FOLDER'])
     port = int(os.environ.get("PORT", 5000))
     
-    initialize_scheduler()
+    # # Chỉ khởi chạy scheduler trong tiến trình chính
+    # if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
+    #     initialize_scheduler()
     
     app.run(host='0.0.0.0', port=port, debug=True, use_reloader=True)
