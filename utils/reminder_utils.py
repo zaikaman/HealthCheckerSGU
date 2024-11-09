@@ -11,6 +11,9 @@ scheduler = BackgroundScheduler()
 # Thêm timezone Việt Nam
 vietnam_tz = pytz.timezone('Asia/Ho_Chi_Minh')
 
+# Thêm biến global để kiểm tra scheduler đã được khởi tạo chưa
+scheduler_initialized = False
+
 def send_reminder_email(reminder, app, mail):
     """Gửi email nhắc nhở cho người dùng"""
     try:
@@ -71,10 +74,16 @@ def send_reminder_email(reminder, app, mail):
 
 def init_reminder_scheduler(app, mail, HealthReminder):
     """Khởi tạo scheduler cho hệ thống nhắc nhở"""
+    global scheduler_initialized
+    
+    # Kiểm tra nếu scheduler đã được khởi tạo thì không khởi tạo lại
+    if scheduler_initialized:
+        logger.info("Scheduler already initialized")
+        return
+        
     def check_and_send_reminders():
         with app.app_context():
             try:
-                # Lấy thời gian hiện tại theo giờ Việt Nam
                 current_time = datetime.now(vietnam_tz)
                 logger.info(f"Checking reminders at {current_time}")
                 
@@ -133,11 +142,13 @@ def init_reminder_scheduler(app, mail, HealthReminder):
         check_and_send_reminders, 
         'interval', 
         minutes=1,
-        id='health_reminder_job'
+        id='health_reminder_job',
+        replace_existing=True  # Thêm option này để tránh duplicate jobs
     )
     
     if not scheduler.running:
         scheduler.start()
+        scheduler_initialized = True  # Đánh dấu đã khởi tạo
         logger.info("Reminder scheduler started")
 
 def shutdown_scheduler():
