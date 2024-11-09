@@ -48,6 +48,7 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 db = SQLAlchemy(app)
+app.db = db  # Thêm db vào app instance
 
 # Định nghĩa mô hình User
 class User(db.Model):

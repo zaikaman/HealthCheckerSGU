@@ -80,9 +80,9 @@ def init_reminder_scheduler(app, mail, HealthReminder):
         return
         
     # Import decorator
-    from app import retry_on_db_error
+    from utils.db_utils import retry_on_db_error
     
-    @retry_on_db_error()
+    @retry_on_db_error(app.db)
     def check_and_send_reminders():
         with app.app_context():
             try:
