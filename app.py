@@ -216,11 +216,11 @@ def signup():
                 db.session.add(new_user)
                 db.session.commit()
                 
-                # Gửi email xác nhận
-                token = generate_confirmation_token(email)
-                if send_confirmation_email(email, token):
+                # Sửa lại phần gửi email xác nhận
+                token = generate_confirmation_token(email, app)
+                if send_confirmation_email(email, token, app, mail):
                     logger.info(f"Confirmation email sent to {email}")
-                    flash("Tài khoản đã được tạo! Vui lòng kiểm tra email để xác nhận. Nếu không thấy email, vui lòng kiểm tra hộp thư rác.", "success")
+                    flash("Tài khoản đã được tạo! Vui lòng kiểm tra email để xác nhận.", "success")
                 else:
                     logger.error(f"Failed to send confirmation email to {email}")
                     flash("Có lỗi xảy ra khi gửi email xác nhận. Vui lòng thử lại.", "danger")

@@ -11,6 +11,9 @@ def generate_confirmation_token(email, app):
 def send_confirmation_email(to_email, token, app, mail):
     from flask import url_for
     from flask_mail import Message
+    import logging
+    
+    logger = logging.getLogger(__name__)
     
     try:
         confirm_url = url_for('confirm_email', token=token, _external=True)
@@ -42,5 +45,7 @@ def send_confirmation_email(to_email, token, app, mail):
         mail.send(msg)
         return True
     except Exception as e:
-        print(f"Error sending email: {str(e)}")
+        logger.error(f"Error sending confirmation email: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
         return False 
