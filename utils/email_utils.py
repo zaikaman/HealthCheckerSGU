@@ -18,17 +18,18 @@ def send_confirmation_email(to_email, token, app, mail):
     try:
         confirm_url = url_for('confirm_email', token=token, _external=True)
         
-        headers = {
-            'X-Priority': '1',
-            'X-MSMail-Priority': 'High',
-            'Importance': 'High'
-        }
-        
         msg = Message(
             subject='Xác nhận tài khoản Health Checker',
-            recipients=[to_email],
-            headers=headers
+            sender=('Health Checker Support', app.config['MAIL_USERNAME']),
+            recipients=[to_email]
         )
+        
+        msg.extra_headers = {
+            'X-Priority': '1',
+            'X-MSMail-Priority': 'High',
+            'Importance': 'High',
+            'Reply-To': app.config['MAIL_USERNAME']
+        }
         
         msg.html = f'''
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -50,6 +51,7 @@ def send_confirmation_email(to_email, token, app, mail):
                 <p><strong>Lưu ý:</strong> Link xác nhận này sẽ hết hạn sau 24 giờ.</p>
                 <hr style="margin: 20px 0;">
                 <p style="color: #666; font-size: 12px;">Email này được gửi tự động từ Health Checker. Vui lòng không trả lời email này.</p>
+                <p style="color: #666; font-size: 12px;">Nếu bạn không đăng ký tài khoản này, vui lòng bỏ qua email này.</p>
             </div>
         '''
         
@@ -68,8 +70,11 @@ def send_confirmation_email(to_email, token, app, mail):
             Health Checker Support Team
         '''
         
+        logger.info(f"Attempting to send email to {to_email}")
         mail.send(msg)
+        logger.info(f"Email sent successfully to {to_email}")
         return True
+        
     except Exception as e:
         logger.error(f"Error sending confirmation email: {str(e)}")
         import traceback
