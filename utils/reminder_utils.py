@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from flask_mail import Message
 from apscheduler.schedulers.background import BackgroundScheduler
 import logging
+import traceback
 
 logger = logging.getLogger(__name__)
 scheduler = BackgroundScheduler()
@@ -69,33 +70,47 @@ def init_reminder_scheduler(app, mail, HealthReminder):
     def check_and_send_reminders():
         with app.app_context():
             try:
-                current_time = datetime.now().time()
-                current_date = datetime.now().date()
+                current_time = datetime.now()
                 
-                # Lấy các nhắc nhở trong khoảng 5 phút gần đây
+                # Lấy tất cả nhắc nhở đang active
                 reminders = HealthReminder.query.filter(
                     HealthReminder.is_active == True,
-                    HealthReminder.time <= current_time,
-                    HealthReminder.time >= (datetime.now() - timedelta(minutes=5)).time(),
-                    HealthReminder.start_date <= current_date,
-                    (HealthReminder.end_date.is_(None) | (HealthReminder.end_date >= current_date))
+                    HealthReminder.start_date <= current_time.date(),
+                    (HealthReminder.end_date.is_(None) | (HealthReminder.end_date >= current_time.date()))
                 ).all()
                 
                 for reminder in reminders:
-                    send_reminder_email(reminder, app, mail)
+                    # Kiểm tra thời gian
+                    reminder_time = reminder.time
+                    if (current_time.hour == reminder_time.hour and 
+                        current_time.minute >= reminder_time.minute and 
+                        current_time.minute < reminder_time.minute + 1):
+                        
+                        # Kiểm tra tần suất
+                        should_send = False
+                        if reminder.frequency == 'daily':
+                            should_send = True
+                        elif reminder.frequency == 'weekly' and current_time.weekday() == reminder.start_date.weekday():
+                            should_send = True
+                        elif reminder.frequency == 'monthly' and current_time.day == reminder.start_date.day:
+                            should_send = True
+                            
+                        if should_send:
+                            send_reminder_email(reminder, app, mail)
+                            logger.info(f"Checked and sent reminder for {reminder.user_email} at {current_time}")
                     
             except Exception as e:
                 logger.error(f"Error in check_and_send_reminders: {str(e)}")
+                logger.error(traceback.format_exc())
     
-    # Thêm job vào scheduler
+    # Chạy kiểm tra mỗi phút
     scheduler.add_job(
         check_and_send_reminders, 
         'interval', 
-        minutes=5,
+        minutes=1,
         id='health_reminder_job'
     )
     
-    # Khởi động scheduler nếu chưa chạy
     if not scheduler.running:
         scheduler.start()
         logger.info("Reminder scheduler started")
