@@ -24,6 +24,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.exc import OperationalError
 from contextlib import contextmanager
 import time
+from functools import wraps
+import sqlalchemy
 
 app = Flask(__name__)
 
@@ -33,6 +35,12 @@ vietnam_tz = pytz.timezone('Asia/Ho_Chi_Minh')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://yh2k7r2tjiynygfo:chsl4bzvipbei6jc@o3iyl77734b9n3tg.cbetxkdyhwsb.us-east-1.rds.amazonaws.com:3306/wk5ybqcvorkax5bp'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'your_secret_key'
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_size': 10,
+    'pool_recycle': 3600,
+    'pool_pre_ping': True,
+    'pool_timeout': 30
+}
 
 # Khởi tạo ElevenLabs client
 client = ElevenLabs(api_key="sk_0282f7067c9709491cbe2e584d4d993a0cb07b2a1fe0aa42")
@@ -502,24 +510,55 @@ def analyze_audio():
             os.remove(audio_response_path)
         db.session.remove()
 
+def handle_db_connection(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        max_retries = 3
+        retry_count = 0
+        while retry_count < max_retries:
+            try:
+                return f(*args, **kwargs)
+            except sqlalchemy.exc.OperationalError as e:
+                if "Lost connection" in str(e) and retry_count < max_retries - 1:
+                    retry_count += 1
+                    db.session.remove()
+                    time.sleep(1)  # Wait before retrying
+                else:
+                    raise
+        return f(*args, **kwargs)
+    return decorated_function
+
 @app.route('/history')
+@handle_db_connection
 def history():
     if 'username' not in session:
         return redirect(url_for('login'))
     
-    user = User.query.filter_by(username=session['username']).first()
-    
-    # Lấy lịch sử từ cả 3 bảng
-    file_analyses = FileAnalysis.query.filter_by(email=user.email).order_by(FileAnalysis.created_at.desc()).all()
-    health_analyses = HealthAnalysis.query.filter_by(email=user.email).order_by(HealthAnalysis.created_at.desc()).all()
-    ai_doctor_analyses = AiDoctor.query.filter_by(email=user.email).order_by(AiDoctor.created_at.desc()).all()
-    
-    return render_template('history.html', 
-                         file_analyses=file_analyses,
-                         health_analyses=health_analyses,
-                         ai_doctor_analyses=ai_doctor_analyses,
-                         timedelta=timedelta,
-                         session=session)
+    try:
+        user = User.query.filter_by(username=session['username']).first()
+        if not user:
+            session.pop('username', None)
+            return redirect(url_for('login'))
+            
+        file_analyses = FileAnalysis.query.filter_by(email=user.email)\
+            .order_by(FileAnalysis.created_at.desc()).all()
+        health_analyses = HealthAnalysis.query.filter_by(email=user.email)\
+            .order_by(HealthAnalysis.created_at.desc()).all()
+        ai_doctor_analyses = AiDoctor.query.filter_by(email=user.email)\
+            .order_by(AiDoctor.created_at.desc()).all()
+        
+        return render_template('history.html',
+                             file_analyses=file_analyses,
+                             health_analyses=health_analyses,
+                             ai_doctor_analyses=ai_doctor_analyses,
+                             timedelta=timedelta,
+                             session=session)
+                             
+    except Exception as e:
+        logger.error(f"Error in history route: {str(e)}")
+        db.session.rollback()
+        flash('Đã xảy ra lỗi khi tải lịch sử. Vui lòng thử lại sau.', 'error')
+        return redirect(url_for('index'))
 
 # Thêm route để phục vụ các file tải lên
 @app.route('/uploads/<filename>')
@@ -688,7 +727,7 @@ if __name__ == '__main__':
         os.makedirs(app.config['UPLOAD_FOLDER'])
     port = int(os.environ.get("PORT", 5000))
     
-    # # Chỉ khởi chạy scheduler trong tiến trình chính
+    # # Chỉ khởi chy scheduler trong tiến trình chính
     # if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
     #     initialize_scheduler()
     
