@@ -117,7 +117,7 @@ def init_reminder_scheduler(app, mail, HealthReminder):
     job = scheduler.add_job(
         check_and_send_reminders, 
         'interval', 
-        seconds=30,
+        seconds=3,
         id='health_reminder_job',
         replace_existing=True
     )
