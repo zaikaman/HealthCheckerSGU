@@ -28,6 +28,10 @@
                             Menu
                         </a>
                         <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('index') }}">
+                                <i class="fas fa-home"></i> Trang Chủ
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{{ url_for('file_analysis') }}">
                                 <i class="fas fa-file-medical"></i> Phân Tích Hồ Sơ Y Tế
                             </a></li>
@@ -36,6 +40,9 @@
                             </a></li>
                             <li><a class="dropdown-item" href="{{ url_for('ai_doctor') }}">
                                 <i class="fas fa-user-md"></i> Bác Sĩ AI
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('reminders') }}">
+                                <i class="fas fa-bell"></i> Nhắc nhở Sức khỏe
                             </a></li>
                         </ul>
                     </li>
