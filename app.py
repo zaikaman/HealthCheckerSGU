@@ -455,14 +455,14 @@ def analyze_audio():
             audio_data = generate_text_to_speech(analysis_result, client)
             
             if audio_data:
-                # Save ElevenLabs audio response
-                audio_response_filename = f"response_{timestamp}.mp3"
+                # Save ElevenLabs audio response với định dạng mp4
+                audio_response_filename = f"response_{timestamp}.mp4"
                 audio_response_path = os.path.join('uploads', audio_response_filename)
                 
                 with open(audio_response_path, 'wb') as f:
                     f.write(audio_data)
 
-                # Upload ElevenLabs audio to Cloudinary
+                # Upload ElevenLabs audio to Cloudinary với resource_type="video"
                 response_upload_result = cloudinary.uploader.upload(
                     audio_response_path,
                     resource_type="video",

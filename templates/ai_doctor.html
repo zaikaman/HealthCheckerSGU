@@ -91,10 +91,13 @@
                 <audio id="audioPlayer" 
                        controls 
                        playsinline
+                       webkit-playsinline
                        preload="auto"
                        onplay="toggleMediaDisplay('video')" 
                        onpause="toggleMediaDisplay('image')" 
                        onended="toggleMediaDisplay('image')">
+                    <source type="video/mp4">
+                    Your browser does not support the audio element.
                 </audio>
             </div>
         </div>
