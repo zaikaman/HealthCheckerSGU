@@ -136,7 +136,28 @@ def initialize_scheduler():
     if not _scheduler_initialized:
         init_reminder_scheduler(app, mail, HealthReminder)
         _scheduler_initialized = True
-        logger.info("Scheduler initialized")
+        logger.info("Scheduler initialized for the first time")
+
+# Sau khi khởi tạo app, db, mail
+initialize_scheduler()
+
+# Thêm route để kiểm tra trạng thái scheduler
+@app.route('/scheduler-status')
+def scheduler_status():
+    global _scheduler_initialized
+    try:
+        from utils.reminder_utils import scheduler
+        is_running = scheduler.running
+        jobs = len(scheduler.get_jobs())
+        return {
+            'initialized': _scheduler_initialized,
+            'running': is_running,
+            'jobs': jobs,
+            'next_run': scheduler.get_jobs()[0].next_run_time.strftime('%Y-%m-%d %H:%M:%S') if jobs > 0 else None
+        }
+    except Exception as e:
+        logger.error(f"Error checking scheduler status: {str(e)}")
+        return {'error': str(e)}
 
 # Khi cần tắt app
 @atexit.register
@@ -311,7 +332,7 @@ def confirm_email(token):
 def health_analysis():
     if request.method == 'POST':
         if 'file' not in request.files:
-            flash('Không có file n��o được chọn')
+            flash('Không có file nào được chọn')
             return redirect(request.url)
         
         file = request.files['file']

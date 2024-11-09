@@ -76,69 +76,61 @@ def init_reminder_scheduler(app, mail, HealthReminder):
     """Khởi tạo scheduler cho hệ thống nhắc nhở"""
     global scheduler_initialized
     
-    # Kiểm tra nếu scheduler đã được khởi tạo thì không khởi tạo lại
     if scheduler_initialized:
-        logger.info("Scheduler already initialized")
+        logger.info("Scheduler already initialized, skipping...")
         return
         
     def check_and_send_reminders():
         with app.app_context():
             try:
                 current_time = datetime.now(vietnam_tz)
+                logger.info(f"[Scheduler] Running check at {current_time}")
                 
-                # Thêm khóa để tránh chạy đồng thời
-                if hasattr(check_and_send_reminders, 'is_running') and check_and_send_reminders.is_running:
-                    logger.debug("Previous check still running, skipping")
-                    return
+                # Lấy tất cả nhắc nhở đang active
+                reminders = HealthReminder.query.filter(
+                    HealthReminder.is_active == True,
+                    HealthReminder.start_date <= current_time.date(),
+                    (HealthReminder.end_date.is_(None) | (HealthReminder.end_date >= current_time.date()))
+                ).all()
                 
-                check_and_send_reminders.is_running = True
+                logger.info(f"[Scheduler] Found {len(reminders)} active reminders")
                 
-                try:
-                    # Phần code kiểm tra và gửi email
-                    reminders = HealthReminder.query.filter(
-                        HealthReminder.is_active == True,
-                        HealthReminder.start_date <= current_time.date(),
-                        (HealthReminder.end_date.is_(None) | (HealthReminder.end_date >= current_time.date()))
-                    ).all()
+                for reminder in reminders:
+                    logger.info(f"[Scheduler] Processing reminder: {reminder.title}")
+                    reminder_datetime = datetime.combine(current_time.date(), reminder.time)
+                    reminder_datetime = vietnam_tz.localize(reminder_datetime)
                     
-                    for reminder in reminders:
-                        reminder_datetime = datetime.combine(current_time.date(), reminder.time)
-                        reminder_datetime = vietnam_tz.localize(reminder_datetime)
+                    if (current_time.hour == reminder_datetime.hour and 
+                        current_time.minute == reminder_datetime.minute):
                         
-                        if (current_time.hour == reminder_datetime.hour and 
-                            current_time.minute == reminder_datetime.minute):
+                        # Kiểm tra xem đã gửi email chưa
+                        cache_key = f"{reminder.id}_{current_time.strftime('%Y%m%d%H%M')}"
+                        if hasattr(check_and_send_reminders, 'sent_reminders'):
+                            if cache_key in check_and_send_reminders.sent_reminders:
+                                continue
+                        else:
+                            check_and_send_reminders.sent_reminders = set()
+                        
+                        if send_reminder_email(reminder, app, mail):
+                            check_and_send_reminders.sent_reminders.add(cache_key)
                             
-                            # Kiểm tra xem đã gửi email chưa
-                            cache_key = f"{reminder.id}_{current_time.strftime('%Y%m%d%H%M')}"
-                            if hasattr(check_and_send_reminders, 'sent_reminders'):
-                                if cache_key in check_and_send_reminders.sent_reminders:
-                                    continue
-                            else:
-                                check_and_send_reminders.sent_reminders = set()
-                            
-                            if send_reminder_email(reminder, app, mail):
-                                check_and_send_reminders.sent_reminders.add(cache_key)
-                                
-                finally:
-                    check_and_send_reminders.is_running = False
-                    
             except Exception as e:
                 logger.error(f"Error in check_and_send_reminders: {str(e)}")
                 logger.error(traceback.format_exc())
     
     # Chạy kiểm tra mỗi phút
-    scheduler.add_job(
+    job = scheduler.add_job(
         check_and_send_reminders, 
         'interval', 
         minutes=1,
         id='health_reminder_job',
-        replace_existing=True  # Thêm option này để tránh duplicate jobs
+        replace_existing=True
     )
     
     if not scheduler.running:
         scheduler.start()
-        scheduler_initialized = True  # Đánh dấu đã khởi tạo
-        logger.info("Reminder scheduler started")
+        scheduler_initialized = True
+        logger.info(f"[Scheduler] Started with job ID: {job.id}, next run at: {job.next_run_time}")
 
 def shutdown_scheduler():
     """Tắt scheduler an toàn"""
