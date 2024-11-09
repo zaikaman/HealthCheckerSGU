@@ -20,6 +20,10 @@ import traceback
 from utils.reminder_utils import init_reminder_scheduler, shutdown_scheduler
 import atexit
 import pytz
+from sqlalchemy import create_engine
+from sqlalchemy.exc import OperationalError
+from contextlib import contextmanager
+import time
 
 app = Flask(__name__)
 
@@ -388,12 +392,36 @@ def ai_doctor():
     # Return cho route ai_doctor
     return render_template('ai_doctor.html')
 
+# Thêm decorator để retry khi mất kết nối
+def retry_on_db_error(max_retries=3, delay=1):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            retries = 0
+            while retries < max_retries:
+                try:
+                    return func(*args, **kwargs)
+                except OperationalError as e:
+                    if "Lost connection" in str(e) and retries < max_retries - 1:
+                        retries += 1
+                        time.sleep(delay)
+                        # Reconnect to database
+                        db.session.rollback()
+                        db.session.remove()
+                    else:
+                        raise
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
+
 @app.route('/analyze_audio', methods=['POST'])
+@retry_on_db_error()
 def analyze_audio():
     if 'audio' not in request.files:
         return jsonify({"result": "Lỗi: Không tìm thấy tệp âm thanh."}), 400
 
     audio_file = request.files['audio']
+    filepath = None
+    
     try:
         # Lưu file audio vào uploads trước
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -408,55 +436,65 @@ def analyze_audio():
             folder="health_checker")
         audio_url = upload_result['secure_url']
 
-        # Phân tích audio (sử dụng file local)
+        # Phân tích audio
         analysis_result = analyze_audio_with_gemini(filepath)
 
         if analysis_result:
-            # Generate audio response from ElevenLabs
+            # Generate audio response
             audio_data = generate_text_to_speech(analysis_result, client)
             
             if audio_data:
-                # Save audio response to temporary file
+                # Save audio response
                 audio_filename = f"response_{timestamp}.mp3"
                 audio_path = os.path.join(app.config['UPLOAD_FOLDER'], audio_filename)
                 
                 with open(audio_path, 'wb') as f:
                     f.write(audio_data)
-            
-                # Save to database
-                user = User.query.filter_by(username=session['username']).first()
-                analysis = AiDoctor(
-                    email=user.email,
-                    input=audio_url,
-                    output=analysis_result
-                )
-                db.session.add(analysis)
-                db.session.commit()
 
-                # Xóa file audio gốc sau khi đã upload xong
-                os.remove(filepath)
+                try:
+                    # Wrap database operations in a transaction
+                    with db.session.begin_nested():
+                        user = User.query.filter_by(username=session['username']).first()
+                        if not user:
+                            raise ValueError("User not found")
+                            
+                        analysis = AiDoctor(
+                            email=user.email,
+                            input=audio_url,
+                            output=analysis_result
+                        )
+                        db.session.add(analysis)
+                    
+                    # Commit the transaction
+                    db.session.commit()
+                    
+                except Exception as db_error:
+                    logger.error(f"Database error: {str(db_error)}")
+                    db.session.rollback()
+                    # Continue even if database save fails
+                    
+                finally:
+                    # Clean up the original audio file
+                    if filepath and os.path.exists(filepath):
+                        os.remove(filepath)
 
                 return jsonify({
                     "result": analysis_result,
                     "audio_url": url_for('uploaded_file', filename=audio_filename)
                 })
-            else:
-                # Nếu không tạo được audio response
-                if os.path.exists(filepath):
-                    os.remove(filepath)
-                return jsonify({"result": "Lỗi: Không thể tạo audio response."}), 500
-        else:
-            # Nếu không phân tích được audio
-            if os.path.exists(filepath):
-                os.remove(filepath)
-            return jsonify({"result": "Lỗi: Không thể phân tích âm thanh."}), 500
-
+            
+        return jsonify({"result": analysis_result})
+        
     except Exception as e:
-        print(f"Error: {str(e)}")
-        # Đảm bảo xóa file tạm nếu có lỗi
-        if 'filepath' in locals() and os.path.exists(filepath):
+        logger.error(f"Error in analyze_audio: {str(e)}")
+        # Clean up files in case of error
+        if filepath and os.path.exists(filepath):
             os.remove(filepath)
         return jsonify({"result": "Lỗi: Không thể xử lý tệp âm thanh."}), 500
+        
+    finally:
+        # Ensure database session is cleaned up
+        db.session.remove()
 
 @app.route('/history')
 def history():
