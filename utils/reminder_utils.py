@@ -85,53 +85,42 @@ def init_reminder_scheduler(app, mail, HealthReminder):
         with app.app_context():
             try:
                 current_time = datetime.now(vietnam_tz)
-                logger.info(f"Checking reminders at {current_time}")
                 
-                # Lấy tất cả nhắc nhở đang active
-                reminders = HealthReminder.query.filter(
-                    HealthReminder.is_active == True,
-                    HealthReminder.start_date <= current_time.date(),
-                    (HealthReminder.end_date.is_(None) | (HealthReminder.end_date >= current_time.date()))
-                ).all()
+                # Thêm khóa để tránh chạy đồng thời
+                if hasattr(check_and_send_reminders, 'is_running') and check_and_send_reminders.is_running:
+                    logger.debug("Previous check still running, skipping")
+                    return
                 
-                logger.info(f"Found {len(reminders)} active reminders")
+                check_and_send_reminders.is_running = True
                 
-                for reminder in reminders:
-                    logger.info(f"Checking reminder: {reminder.title}")
+                try:
+                    # Phần code kiểm tra và gửi email
+                    reminders = HealthReminder.query.filter(
+                        HealthReminder.is_active == True,
+                        HealthReminder.start_date <= current_time.date(),
+                        (HealthReminder.end_date.is_(None) | (HealthReminder.end_date >= current_time.date()))
+                    ).all()
                     
-                    # Chuyển đổi reminder time sang datetime với timezone
-                    reminder_datetime = datetime.combine(current_time.date(), reminder.time)
-                    reminder_datetime = vietnam_tz.localize(reminder_datetime)
-                    
-                    logger.info(f"Reminder time: {reminder_datetime.time()}, Current time: {current_time.time()}")
-                    
-                    # Kiểm tra thời gian
-                    if (current_time.hour == reminder_datetime.hour and 
-                        current_time.minute == reminder_datetime.minute):
+                    for reminder in reminders:
+                        reminder_datetime = datetime.combine(current_time.date(), reminder.time)
+                        reminder_datetime = vietnam_tz.localize(reminder_datetime)
                         
-                        logger.info(f"Time match found for reminder: {reminder.title}")
-                        
-                        # Kiểm tra tần suất
-                        should_send = False
-                        if reminder.frequency == 'daily':
-                            should_send = True
-                            logger.info("Daily reminder - should send")
-                        elif reminder.frequency == 'weekly' and current_time.weekday() == reminder.start_date.weekday():
-                            should_send = True
-                            logger.info("Weekly reminder - should send")
-                        elif reminder.frequency == 'monthly' and current_time.day == reminder.start_date.day:
-                            should_send = True
-                            logger.info("Monthly reminder - should send")
+                        if (current_time.hour == reminder_datetime.hour and 
+                            current_time.minute == reminder_datetime.minute):
                             
-                        if should_send:
-                            logger.info(f"Attempting to send email for reminder: {reminder.title}")
-                            success = send_reminder_email(reminder, app, mail)
-                            if success:
-                                logger.info(f"Successfully sent reminder email to {reminder.user_email}")
+                            # Kiểm tra xem đã gửi email chưa
+                            cache_key = f"{reminder.id}_{current_time.strftime('%Y%m%d%H%M')}"
+                            if hasattr(check_and_send_reminders, 'sent_reminders'):
+                                if cache_key in check_and_send_reminders.sent_reminders:
+                                    continue
                             else:
-                                logger.error(f"Failed to send reminder email to {reminder.user_email}")
-                    else:
-                        logger.debug(f"Time mismatch - Reminder: {reminder_datetime.time()}, Current: {current_time.time()}")
+                                check_and_send_reminders.sent_reminders = set()
+                            
+                            if send_reminder_email(reminder, app, mail):
+                                check_and_send_reminders.sent_reminders.add(cache_key)
+                                
+                finally:
+                    check_and_send_reminders.is_running = False
                     
             except Exception as e:
                 logger.error(f"Error in check_and_send_reminders: {str(e)}")

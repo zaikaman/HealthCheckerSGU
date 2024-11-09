@@ -128,8 +128,15 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Sau khi đã khởi tạo app, db, mail và model HealthReminder
-init_reminder_scheduler(app, mail, HealthReminder)
+# Thêm biến global để theo dõi trạng thái scheduler
+_scheduler_initialized = False
+
+def initialize_scheduler():
+    global _scheduler_initialized
+    if not _scheduler_initialized:
+        init_reminder_scheduler(app, mail, HealthReminder)
+        _scheduler_initialized = True
+        logger.info("Scheduler initialized")
 
 # Khi cần tắt app
 @atexit.register
@@ -304,7 +311,7 @@ def confirm_email(token):
 def health_analysis():
     if request.method == 'POST':
         if 'file' not in request.files:
-            flash('Không có file nào được chọn')
+            flash('Không có file n��o được chọn')
             return redirect(request.url)
         
         file = request.files['file']
