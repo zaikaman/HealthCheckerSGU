@@ -198,3 +198,66 @@ h1 {
 .spinner-border {
     margin-right: 8px;
 }
+
+/* Điều chỉnh font size cho mobile */
+@media (max-width: 576px) {
+    h1 {
+        font-size: 1.5rem !important;
+        margin-bottom: 15px;
+    }
+
+    h2 {
+        font-size: 1.3rem !important;
+    }
+
+    .form-label {
+        font-size: 0.9rem;
+    }
+
+    .btn-upload {
+        font-size: 1rem;
+        padding: 10px 20px;
+    }
+
+    .result-container pre {
+        font-size: 0.85rem;
+        padding: 15px;
+        line-height: 1.4;
+    }
+
+    .container {
+        padding: 20px 15px;
+        margin: 20px auto;
+    }
+
+    .navbar-brand {
+        font-size: 1.1rem;
+    }
+
+    .nav-link {
+        font-size: 0.9rem;
+    }
+
+    .dropdown-item {
+        font-size: 0.9rem;
+        padding: 8px 15px;
+    }
+}
+
+/* Cải thiện khả năng đọc trên mobile */
+.result-container pre {
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    -webkit-text-size-adjust: 100%;
+}
+
+/* Thêm các styles để tối ưu hiển thị trên mobile */
+.form-container {
+    padding: 15px;
+}
+
+.preview-container img {
+    max-height: 250px;
+    width: auto;
+    margin: 0 auto;
+}
