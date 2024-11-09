@@ -19,8 +19,11 @@ from utils.validation_utils import is_valid_email
 import traceback
 from utils.reminder_utils import init_reminder_scheduler, shutdown_scheduler
 import atexit
+import pytz
 
 app = Flask(__name__)
+
+vietnam_tz = pytz.timezone('Asia/Ho_Chi_Minh')
 
 # Cấu hình cơ sở dữ liệu
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://yh2k7r2tjiynygfo:chsl4bzvipbei6jc@o3iyl77734b9n3tg.cbetxkdyhwsb.us-east-1.rds.amazonaws.com:3306/wk5ybqcvorkax5bp'
@@ -251,7 +254,7 @@ def signup():
                     db.session.add(new_user)
                     db.session.commit()
                     
-                    # Sửa lại phần gửi email xác nhận
+                    # Sa lại phần gửi email xác nhận
                     token = generate_confirmation_token(email, app)
                     if not send_confirmation_email(email, token, app, mail):
                         logger.error("Failed to send confirmation email")
@@ -311,7 +314,7 @@ def health_analysis():
 
         if file and allowed_file(file.filename):
             try:
-                # Lưu file vào uploads trước
+                # Lưu file vào uploads trưc
                 timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
                 filename = f"{secure_filename(file.filename.rsplit('.', 1)[0])}_{timestamp}.{file.filename.rsplit('.', 1)[1]}"
                 filepath = os.path.join('uploads', filename)
@@ -465,7 +468,11 @@ def reminders():
             description = request.form['description']
             reminder_type = request.form['type']
             frequency = request.form['frequency']
-            time = datetime.strptime(request.form['time'], '%H:%M').time()
+            time_str = request.form['time']
+            local_time = datetime.strptime(time_str, '%H:%M').time()
+            local_dt = datetime.combine(datetime.now().date(), local_time)
+            local_dt = vietnam_tz.localize(local_dt)
+            utc_time = local_dt.astimezone(pytz.UTC).time()
             start_date = datetime.strptime(request.form['start_date'], '%Y-%m-%d').date()
             end_date = datetime.strptime(request.form['end_date'], '%Y-%m-%d').date() if request.form['end_date'] else None
 
@@ -476,7 +483,7 @@ def reminders():
                 description=description,
                 reminder_type=reminder_type,
                 frequency=frequency,
-                time=time,
+                time=utc_time,
                 start_date=start_date,
                 end_date=end_date,
                 is_active=True

@@ -2,10 +2,14 @@ from datetime import datetime, timedelta
 from flask_mail import Message
 from apscheduler.schedulers.background import BackgroundScheduler
 import logging
+import pytz
 import traceback
 
 logger = logging.getLogger(__name__)
 scheduler = BackgroundScheduler()
+
+# Thêm timezone Việt Nam
+vietnam_tz = pytz.timezone('Asia/Ho_Chi_Minh')
 
 def send_reminder_email(reminder, app, mail):
     """Gửi email nhắc nhở cho người dùng"""
@@ -70,7 +74,8 @@ def init_reminder_scheduler(app, mail, HealthReminder):
     def check_and_send_reminders():
         with app.app_context():
             try:
-                current_time = datetime.now()
+                # Lấy thời gian hiện tại theo giờ Việt Nam
+                current_time = datetime.now(vietnam_tz)
                 logger.info(f"Checking reminders at {current_time}")
                 
                 # Lấy tất cả nhắc nhở đang active
@@ -84,12 +89,16 @@ def init_reminder_scheduler(app, mail, HealthReminder):
                 
                 for reminder in reminders:
                     logger.info(f"Checking reminder: {reminder.title}")
-                    logger.info(f"Reminder time: {reminder.time}, Current time: {current_time.time()}")
+                    
+                    # Chuyển đổi reminder time sang datetime với timezone
+                    reminder_datetime = datetime.combine(current_time.date(), reminder.time)
+                    reminder_datetime = vietnam_tz.localize(reminder_datetime)
+                    
+                    logger.info(f"Reminder time: {reminder_datetime.time()}, Current time: {current_time.time()}")
                     
                     # Kiểm tra thời gian
-                    reminder_time = reminder.time
-                    if (current_time.hour == reminder_time.hour and 
-                        current_time.minute == reminder_time.minute):
+                    if (current_time.hour == reminder_datetime.hour and 
+                        current_time.minute == reminder_datetime.minute):
                         
                         logger.info(f"Time match found for reminder: {reminder.title}")
                         
@@ -113,7 +122,7 @@ def init_reminder_scheduler(app, mail, HealthReminder):
                             else:
                                 logger.error(f"Failed to send reminder email to {reminder.user_email}")
                     else:
-                        logger.debug(f"Time mismatch - Reminder: {reminder_time}, Current: {current_time.time()}")
+                        logger.debug(f"Time mismatch - Reminder: {reminder_datetime.time()}, Current: {current_time.time()}")
                     
             except Exception as e:
                 logger.error(f"Error in check_and_send_reminders: {str(e)}")
