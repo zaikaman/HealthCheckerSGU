@@ -14,26 +14,12 @@ vietnam_tz = pytz.timezone('Asia/Ho_Chi_Minh')
 # Thêm biến global để kiểm tra scheduler đã được khởi tạo chưa
 scheduler_initialized = False
 
-# Thêm cache để lưu nội dung email đã gửi
-sent_email_contents = {}
+# Thêm cache để lưu các reminder đã gửi trong phút hiện tại
+sent_reminders = set()
 
-def send_reminder_email(reminder, app, mail):
+def send_reminder_email(reminder, app, mail, cache_key):
     """Gửi email nhắc nhở cho người dùng"""
     try:
-        # Kiểm tra tần suất gửi
-        current_date = datetime.now().date()
-        should_send = False
-        
-        if reminder.frequency == 'daily':
-            should_send = True
-        elif reminder.frequency == 'weekly' and current_date.weekday() == reminder.start_date.weekday():
-            should_send = True
-        elif reminder.frequency == 'monthly' and current_date.day == reminder.start_date.day:
-            should_send = True
-            
-        if not should_send:
-            return False
-
         # Tạo nội dung email
         reminder_types = {
             'medicine': 'Uống thuốc',
@@ -41,11 +27,6 @@ def send_reminder_email(reminder, app, mail):
             'checkup': 'Khám định kỳ'
         }
         
-        # Tạo key cho cache
-        current_minute = datetime.now().strftime('%Y%m%d%H%M')
-        cache_key = f"{reminder.user_email}_{current_minute}"
-        
-        # Tạo nội dung email
         email_content = f'''
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                 <h2 style="color: #007bff;">Nhắc nhở {reminder_types.get(reminder.reminder_type, "")}</h2>
@@ -66,11 +47,6 @@ def send_reminder_email(reminder, app, mail):
             </div>
         '''
         
-        # Kiểm tra nếu đã gửi email có nội dung giống hệt trong phút hiện tại
-        if cache_key in sent_email_contents and sent_email_contents[cache_key] == email_content:
-            logger.info(f"Skipping duplicate email for {reminder.user_email}")
-            return False
-            
         msg = Message(
             subject=f'Nhắc nhở {reminder_types.get(reminder.reminder_type, "")}: {reminder.title}',
             sender=app.config['MAIL_DEFAULT_SENDER'],
@@ -80,16 +56,14 @@ def send_reminder_email(reminder, app, mail):
         msg.html = email_content
         mail.send(msg)
         
-        # Lưu nội dung email vào cache
-        sent_email_contents[cache_key] = email_content
+        # Lưu cache_key vào sent_reminders
+        sent_reminders.add(cache_key)
         
         # Xóa cache cũ (giữ lại cache trong 5 phút)
         current_time = datetime.now()
-        old_keys = [k for k in sent_email_contents.keys() 
-                   if datetime.strptime(k.split('_')[1], '%Y%m%d%H%M') < current_time - timedelta(minutes=5)]
-        for k in old_keys:
-            del sent_email_contents[k]
-            
+        old_keys = {k for k in sent_reminders if datetime.strptime(k.split('_')[1], '%Y%m%d%H%M') < current_time - timedelta(minutes=5)}
+        sent_reminders.difference_update(old_keys)
+        
         logger.info(f"Sent reminder email to {reminder.user_email}")
         return True
         
@@ -128,16 +102,15 @@ def init_reminder_scheduler(app, mail, HealthReminder):
                     if (current_time.hour == reminder_datetime.hour and 
                         current_time.minute == reminder_datetime.minute):
                         
-                        # Kiểm tra xem đã gửi email chưa
+                        # Tạo cache_key
                         cache_key = f"{reminder.id}_{current_time.strftime('%Y%m%d%H%M')}"
-                        if hasattr(check_and_send_reminders, 'sent_reminders'):
-                            if cache_key in check_and_send_reminders.sent_reminders:
-                                continue
-                        else:
-                            check_and_send_reminders.sent_reminders = set()
                         
-                        if send_reminder_email(reminder, app, mail):
-                            check_and_send_reminders.sent_reminders.add(cache_key)
+                        if cache_key in sent_reminders:
+                            logger.info(f"Already sent reminder for {reminder.title} at {current_time.strftime('%Y-%m-%d %H:%M')}")
+                            continue
+                        
+                        if send_reminder_email(reminder, app, mail, cache_key):
+                            pass  # Đã thêm vào sent_reminders trong hàm send_reminder_email
                             
             except Exception as e:
                 logger.error(f"Error in check_and_send_reminders: {str(e)}")
@@ -156,9 +129,9 @@ def init_reminder_scheduler(app, mail, HealthReminder):
         scheduler.start()
         scheduler_initialized = True
         logger.info(f"[Scheduler] Started with job ID: {job.id}, next run at: {job.next_run_time}")
-
+    
 def shutdown_scheduler():
     """Tắt scheduler an toàn"""
     if scheduler.running:
         scheduler.shutdown()
-        logger.info("Reminder scheduler shutdown") 
+        logger.info("Reminder scheduler shutdown")
