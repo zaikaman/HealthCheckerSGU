@@ -26,6 +26,8 @@ from contextlib import contextmanager
 import time
 from functools import wraps
 import sqlalchemy
+from collections import deque
+from threading import Lock
 
 app = Flask(__name__)
 
@@ -43,7 +45,40 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
 }
 
 # Khởi tạo ElevenLabs client
-client = ElevenLabs(api_key="sk_0365985c4b6e86f4679a5cdec92c70e91fbbec57bbb39777")
+class ApiKeyRotator:
+    def __init__(self, api_keys):
+        self.api_keys = deque(api_keys)
+        self.lock = Lock()
+    
+    def get_next_key(self):
+        with self.lock:
+            # Get current key
+            current_key = self.api_keys[0]
+            # Rotate the deque
+            self.api_keys.rotate(-1)
+            return current_key
+
+# List of API keys
+ELEVEN_LABS_API_KEYS = [
+    "sk_0365985c4b6e86f4679a5cdec92c70e91fbbec57bbb39777",
+    "sk_172aae94b5b3e134ab9e17b531ac7ec776a17e97724e442a",
+    "sk_718d49b5c80c7624bc49b88cd4350ab7fa2a4b5e9d95e206",
+    "sk_23caa0ff0672b67428e94f110ed86810c9f29ae4b4d84685",
+    "sk_71e9e5d0b417024425b420213d6c0880f31832d4bd2b2086",
+    "sk_d1d8d7fbbfb82b58a9d5701029e18b9be588e648785d4b4e",
+    "sk_ba9194d1c48ace4f53464547c53df7660e852c02f4d5d109",
+    "sk_63aceefaaafdc1342508a4f71fd0c283b771708102c8486e",
+    "sk_b7cc00ff23a2406dae68b5e2963950fa37eb4df75d6db4d1",
+    "sk_4894fbe6c7f2621afb3df2c166b9a28c6cbb6c49a2b3096e",
+]
+
+# Initialize the key rotator
+api_key_rotator = ApiKeyRotator(ELEVEN_LABS_API_KEYS)
+
+# Instead of initializing a single client, create a function to get a client with the next key
+def get_eleven_labs_client():
+    next_key = api_key_rotator.get_next_key()
+    return ElevenLabs(api_key=next_key)
 
 analysis_result = ""
 
@@ -461,6 +496,7 @@ def analyze_audio():
         analysis_result = analyze_audio_with_gemini(filepath)
 
         if analysis_result:
+            client = get_eleven_labs_client()
             # Generate ElevenLabs audio response
             audio_data = generate_text_to_speech(analysis_result, client)
             
