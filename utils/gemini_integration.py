@@ -4,7 +4,7 @@ import re
 import os
 
 def upload_image_to_gemini(image_path, api_key):
-    api_key = "AIzaSyBCCCvVlI3FyQKLYmI2SdASxPiZvh8VvHY"
+    api_key = "AIzaSyDXPkTlQv8C2A5pCCBWShdJF3IeVMhl8Qc"
     url = f"https://generativelanguage.googleapis.com/upload/v1beta/files?key={api_key}"
     
     mime_type = "image/jpeg" if image_path.lower().endswith(".jpg") or image_path.lower().endswith(".jpeg") else "image/png"
@@ -42,7 +42,7 @@ def upload_image_to_gemini(image_path, api_key):
         return None
 
 def analyze_text_with_gemini(text):
-    api_key = "AIzaSyBCCCvVlI3FyQKLYmI2SdASxPiZvh8VvHY"
+    api_key = "AIzaSyDXPkTlQv8C2A5pCCBWShdJF3IeVMhl8Qc"
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={api_key}"
     
     headers = {
@@ -88,7 +88,7 @@ def analyze_text_with_gemini(text):
         return "Lỗi: Không thể xử lý văn bản với Gemini AI."
     
 def analyze_text_with_image(text, image_path):
-    api_key = "AIzaSyBCCCvVlI3FyQKLYmI2SdASxPiZvh8VvHY"
+    api_key = "AIzaSyDXPkTlQv8C2A5pCCBWShdJF3IeVMhl8Qc"
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={api_key}"
     
     headers = {
@@ -147,7 +147,7 @@ def analyze_text_with_image(text, image_path):
     
 def analyze_audio_with_gemini(audio_path):
     # Đường dẫn endpoint API của Google
-    api_key = "AIzaSyBCCCvVlI3FyQKLYmI2SdASxPiZvh8VvHY"
+    api_key = "AIzaSyDXPkTlQv8C2A5pCCBWShdJF3IeVMhl8Qc"
     upload_init_url = f"https://generativelanguage.googleapis.com/upload/v1beta/files?key={api_key}"
     analysis_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={api_key}"
 
