@@ -43,7 +43,7 @@ def upload_image_to_gemini(image_path, api_key):
 
 def analyze_text_with_gemini(text):
     api_key = "AIzaSyACj8lF586i6VOfrHEeL_j0IFWAUk-q5Ss"
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={api_key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key={api_key}"
     
     headers = {
         'Content-Type': 'application/json'
@@ -89,7 +89,7 @@ def analyze_text_with_gemini(text):
     
 def analyze_text_with_image(text, image_path):
     api_key = "AIzaSyACj8lF586i6VOfrHEeL_j0IFWAUk-q5Ss"
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={api_key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key={api_key}"
     
     headers = {
         'Content-Type': 'application/json'
@@ -149,7 +149,7 @@ def analyze_audio_with_gemini(audio_path):
     # Đường dẫn endpoint API của Google
     api_key = "AIzaSyACj8lF586i6VOfrHEeL_j0IFWAUk-q5Ss"
     upload_init_url = f"https://generativelanguage.googleapis.com/upload/v1beta/files?key={api_key}"
-    analysis_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={api_key}"
+    analysis_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key={api_key}"
 
     # Xác định loại MIME của file
     mime_type = "audio/mpeg"
