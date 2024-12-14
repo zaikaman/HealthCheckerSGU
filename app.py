@@ -244,7 +244,7 @@ def file_analysis():
                 file_url = upload_result['secure_url']
 
                 # Phân tích với Gemini AI (sử dụng file local)
-                text_prompt = "Hãy phân tích chi tiết hồ sơ y tế hoặc đơn thuốc này và đưa ra những thông tin quan trọng."
+                text_prompt = "Hãy phân tích chi tiết hồ sơ y tế hoặc đơn thuốc này và đưa ra những thông tin quan trọng cùng lời khuyên bạn dành cho bệnh nhân, luôn trả lời bằng Tiếng Việt."
                 extracted_entities = analyze_text_with_image(text_prompt, filepath)
 
                 # Lưu vào database với Cloudinary URL
@@ -414,7 +414,7 @@ def health_analysis():
    - Chế độ dinh dưỡng phù hợp với thể trạng
    - Mục tiêu thể hình và sức khỏe khả thi
 
-Giữ giọng điệu chuyên nghiệp, khách quan và mang tính xây dựng."""
+Giữ giọng điệu chuyên nghiệp, khách quan và mang tính xây dựng. Luôn trả lời bằng Tiếng Việt"""
                 result = analyze_text_with_image(text_prompt, filepath)
 
                 # Lưu vào database với Cloudinary URL

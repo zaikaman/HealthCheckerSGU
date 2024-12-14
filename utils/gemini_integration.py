@@ -49,7 +49,7 @@ def analyze_text_with_gemini(text):
         'Content-Type': 'application/json'
     }
     
-    prompt_text = "Hãy phân tích tình trạng sức khỏe của bệnh nhân dựa trên văn bản này. Nếu đây là đơn thuốc, hãy suy luận về các khả năng bệnh lý dựa trên các loại thuốc được kê và giải thích lý do có thể cho việc sử dụng từng loại thuốc. Đưa ra nhận xét về tình trạng sức khỏe của bệnh nhân cũng như các hành vi và thói quen nên hoặc không nên thực hiện để cải thiện tình trạng bệnh. Hãy cung cấp lời khuyên cụ thể và hữu ích, tập trung vào chế độ ăn uống, hoạt động thể chất và các thói quen lành mạnh: " + text
+    prompt_text = "Hãy phân tích tình trạng sức khỏe của bệnh nhân dựa trên văn bản này. Nếu đây là đơn thuốc, hãy suy luận về các khả năng bệnh lý dựa trên các loại thuốc được kê và giải thích lý do có thể cho việc sử dụng từng loại thuốc. Đưa ra nhận xét về tình trạng sức khỏe của bệnh nhân cũng như các hành vi và thói quen nên hoặc không nên thực hiện để cải thiện tình trạng bệnh. Hãy cung cấp lời khuyên cụ thể và hữu ích, tập trung vào chế độ ăn uống, hoạt động thể chất và các thói quen lành mạnh, luôn trả lời bằng Tiếng Việt: " + text
     
     data = {
         "contents": [
@@ -197,7 +197,7 @@ def analyze_audio_with_gemini(audio_path):
         analysis_headers = {"Content-Type": "application/json"}
         
         # Prompt cho quá trình phân tích
-        prompt_text = ("Bạn là một bác sĩ đa khoa giàu kinh nghiệm, hãy phân tích triệu chứng và đưa ra các khả năng chẩn đoán dựa trên thông tin được cung cấp. Giải thích ngắn gọn về các nguyên nhân có thể gây ra tình trạng này, đề xuất phương pháp điều trị phù hợp và các biện pháp phòng ngừa. Đưa ra lời khuyên cụ thể về chế độ ăn uống, sinh hoạt và các thói quen cần thay đổi. Cuối cùng, nhắc nhở người bệnh nên thăm khám bác sĩ để được chẩn đoán và điều trị chính xác. Trả lời ngắn gọn, dễ hiểu và mang tính đồng cảm, không quá 400 ký tự.")
+        prompt_text = ("Bạn là một bác sĩ đa khoa giàu kinh nghiệm, hãy phân tích triệu chứng và đưa ra các khả năng chẩn đoán dựa trên thông tin được cung cấp. Giải thích ngắn gọn về các nguyên nhân có thể gây ra tình trạng này, đề xuất phương pháp điều trị phù hợp và các biện pháp phòng ngừa. Đưa ra lời khuyên cụ thể về chế độ ăn uống, sinh hoạt và các thói quen cần thay đổi. Cuối cùng, nhắc nhở người bệnh nên thăm khám bác sĩ để được chẩn đoán và điều trị chính xác. Trả lời ngắn gọn, dễ hiểu và mang tính đồng cảm. Có thể nói các loại thuốc và cách điều trị chung. Luôn trả lời bằng tiếng Việt")
 
         data = {
             "contents": [
