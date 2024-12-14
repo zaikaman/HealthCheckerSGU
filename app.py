@@ -403,18 +403,7 @@ def health_analysis():
                     folder="health_checker")
                 file_url = upload_result['secure_url']
 
-                # Phân tích với AI (sử dụng file local)
-                text_prompt = """Với vai trò là một chuyên gia thể hình và sức khỏe, hãy phân tích các đặc điểm quan sát được từ hình ảnh:
-
-1. Phân tích hình thể: Đánh giá tỷ lệ cơ-mỡ, cấu trúc cơ thể, và dáng người tổng thể
-2. Dấu hiệu thể chất: Nhận xét về tư thế, sự cân đối của cơ thể, và các dấu hiệu về mức độ tập luyện
-3. Đánh giá thể trạng: Dựa trên các yếu tố quan sát được, nhận định về mức độ rèn luyện thể chất
-4. Đề xuất cụ thể: 
-   - Các bài tập phù hợp để cải thiện vùng cần tập trung
-   - Chế độ dinh dưỡng phù hợp với thể trạng
-   - Mục tiêu thể hình và sức khỏe khả thi
-
-Giữ giọng điệu chuyên nghiệp, khách quan và mang tính xây dựng. Luôn trả lời bằng Tiếng Việt"""
+                text_prompt = "Với vai trò là một chuyên gia thể hình và sức khỏe, hãy phân tích các đặc điểm quan sát được từ hình ảnh: 1. Phân tích hình thể: Đánh giá tỷ lệ cơ-mỡ, cấu trúc cơ thể, và dáng người tổng thể 2. Dấu hiệu thể chất: Nhận xét về tư thế, sự cân đối của cơ thể, và các dấu hiệu về mức độ tập luyện 3. Đánh giá thể trạng: Dựa trên các yếu tố quan sát được, nhận định về mức độ rèn luyện thể chất 4. Đề xuất cụ thể: - Các bài tập phù hợp để cải thiện vùng cần tập trung - Chế độ dinh dưỡng phù hợp với thể trạng - Mục tiêu thể hình và sức khỏe khả thi Giữ giọng điệu chuyên nghiệp, khách quan và mang tính xây dựng. Luôn trả lời bằng Tiếng Việt"
                 result = analyze_text_with_image(text_prompt, filepath)
 
                 # Lưu vào database với Cloudinary URL
