@@ -149,10 +149,10 @@ function getMediaContent(type) {
     if (type === "video") {
         return `
             <div style="position: relative; width: 100%; height: 100%; overflow: hidden;">
-                <iframe class="media-content active" allow="fullscreen; autoplay" allowfullscreen 
-                    src="https://streamable.com/e/5iv02h?autoplay=1&muted=1&nocontrols=1" 
+                <video class="media-content active" autoplay loop muted playsinline
+                    src="https://res.cloudinary.com/ddrfu9ftt/video/upload/v1734153781/qug8ornrqur6zxfdtpou.mp4" 
                     style="width: 100%; height: 100%; object-fit: cover;">
-                </iframe>
+                </video>
             </div>`;
     } else {
         return `
