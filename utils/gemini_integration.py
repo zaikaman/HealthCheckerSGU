@@ -103,6 +103,15 @@ def analyze_text_with_image(text, image_path):
     if not file_uri:
         return "Error: Unable to upload the image."
     
+    # Determine correct MIME type
+    ext = image_path.lower().split('.')[-1]
+    mime_type = {
+        'jpg': 'image/jpeg',
+        'jpeg': 'image/jpeg',
+        'png': 'image/png',
+        'webp': 'image/webp'
+    }.get(ext, 'image/jpeg')  # Default to jpeg if unknown
+    
     # Prepare the request data with both text and image
     data = {
         "contents": [
@@ -111,7 +120,7 @@ def analyze_text_with_image(text, image_path):
                     {"text": prompt_text},
                     {
                         "file_data": {
-                            "mime_type": "image/jpeg" if image_path.lower().endswith(".jpg") else "image/png",
+                            "mime_type": mime_type,
                             "file_uri": file_uri
                         }
                     }
@@ -139,6 +148,7 @@ def analyze_text_with_image(text, image_path):
                 return "No content generated."
         else:
             print(f"Error: Received status code {response.status_code}")
+            print(f"Response content: {response.text}")  
             return f"Error: Unable to process text. Status code: {response.status_code}"
     
     except Exception as e:
@@ -197,7 +207,7 @@ def analyze_audio_with_gemini(audio_path):
         analysis_headers = {"Content-Type": "application/json"}
         
         # Prompt cho quá trình phân tích
-        prompt_text = ("Bạn là một bác sĩ đa khoa giàu kinh nghiệm, hãy phân tích triệu chứng và đưa ra các khả năng chẩn đoán dựa trên thông tin được cung cấp. Giải thích ngắn gọn về các nguyên nhân có thể gây ra tình trạng này, đề xuất phương pháp điều trị phù hợp và các biện pháp phòng ngừa. Đưa ra lời khuyên cụ thể về chế độ ăn uống, sinh hoạt và các thói quen cần thay đổi. Cuối cùng, nhắc nhở người bệnh nên thăm khám bác sĩ để được chẩn đoán và điều trị chính xác. Trả lời ngắn gọn, dễ hiểu và mang tính đồng cảm. Có thể nói các loại thuốc và cách điều trị chung. Luôn trả lời bằng tiếng Việt. Trả lời dưới 500 ký tự.")
+        prompt_text = ("Bạn là một bác sĩ đa khoa giàu kinh nghiệm, hãy phân tích triệu chứng và đưa ra các khả năng chẩn đoán dựa trên thông tin được cung cấp. Giải thích ngắn gọn về các nguyên nhân có thể gây ra tình trạng này, đề xuất phương pháp điều trị phù hợp và các biện pháp phòng ngừa. Đưa ra lời khuyên cụ thể về chế độ ăn uống, sinh hoạt và các thói quen cần thay đổi. Cuối cùng, nhắc nhở người bệnh nên thăm khám bác sĩ để được chẩn đoán và điều trị chính xác. Trả lời ngắn gọn, dễ hiểu và mang tính đồng cảm. Có thể nói các loại thuốc và cách điều trị chung. Luôn trả lời bằng tiếng Việt. Trả lời dướiT 500 ký tự.")
 
         data = {
             "contents": [

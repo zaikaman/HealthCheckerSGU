@@ -403,7 +403,7 @@ def health_analysis():
                     folder="health_checker")
                 file_url = upload_result['secure_url']
 
-                text_prompt = "Với vai trò chuyên gia sức khỏe, phân tích hình ảnh và đưa ra: 1. Đánh giá hình thể: tỷ lệ cơ-mỡ, cấu trúc cơ thể. 2. Nhận xét tư thế, sự cân đối và dấu hiệu tập luyện. 3. Đánh giá mức độ rèn luyện thể chất. 4. Đề xuất: bài tập phù hợp, chế độ dinh dưỡng, mục tiêu khả thi. Trả lời chuyên nghiệp, khách quan bằng tiếng Việt."
+                text_prompt = "Với vai trò chuyên gia sức khỏe, hãy phân tích hình ảnh và đưa ra: 1. Đánh giá hình thể và cấu trúc cơ thể. 2. Nhận xét tư thế và dấu hiệu tập luyện. 3. Đề xuất bài tập và chế độ dinh dưỡng phù hợp. Trả lời chuyên nghiệp bằng tiếng Việt."
                 result = analyze_text_with_image(text_prompt, filepath)
 
                 # Lưu vào database với Cloudinary URL
