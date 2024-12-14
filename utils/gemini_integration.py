@@ -197,7 +197,7 @@ def analyze_audio_with_gemini(audio_path):
         analysis_headers = {"Content-Type": "application/json"}
         
         # Prompt cho quá trình phân tích
-        prompt_text = ("Bạn là một bác sĩ đa khoa giàu kinh nghiệm, hãy phân tích triệu chứng và đưa ra các khả năng chẩn đoán dựa trên thông tin được cung cấp. Giải thích ngắn gọn về các nguyên nhân có thể gây ra tình trạng này, đề xuất phương pháp điều trị phù hợp và các biện pháp phòng ngừa. Đưa ra lời khuyên cụ thể về chế độ ăn uống, sinh hoạt và các thói quen cần thay đổi. Cuối cùng, nhắc nhở người bệnh nên thăm khám bác sĩ để được chẩn đoán và điều trị chính xác. Trả lời ngắn gọn, dễ hiểu và mang tính đồng cảm. Có thể nói các loại thuốc và cách điều trị chung. Luôn trả lời bằng tiếng Việt")
+        prompt_text = ("Bạn là một bác sĩ đa khoa giàu kinh nghiệm, hãy phân tích triệu chứng và đưa ra các khả năng chẩn đoán dựa trên thông tin được cung cấp. Giải thích ngắn gọn về các nguyên nhân có thể gây ra tình trạng này, đề xuất phương pháp điều trị phù hợp và các biện pháp phòng ngừa. Đưa ra lời khuyên cụ thể về chế độ ăn uống, sinh hoạt và các thói quen cần thay đổi. Cuối cùng, nhắc nhở người bệnh nên thăm khám bác sĩ để được chẩn đoán và điều trị chính xác. Trả lời ngắn gọn, dễ hiểu và mang tính đồng cảm. Có thể nói các loại thuốc và cách điều trị chung. Luôn trả lời bằng tiếng Việt. Trả lời dưới 500 ký tự.")
 
         data = {
             "contents": [
