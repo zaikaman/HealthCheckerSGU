@@ -1,1 +1,38 @@
-.vercel
+# Python
+__pycache__/ 
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+
+# Environment files
+*.env
+.env.* 
+
+# Secrets and keys
+*.key
+*.pem
+*.crt
+*.cer
+*.p12
+*.pfx
+
+# Builds
+build/
+dist/
+*.egg-info/
+
+# Logs
+*.log
+
+# Database
+*.sqlite
+*.db
+
+# Uploads
+uploads/
